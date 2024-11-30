@@ -1,0 +1,13 @@
+[Details]
+ID = "com.tanium.taniumtimer"
+Name = "Tanium Timer"
+Creator = "Allan Marillier"
+Version = "0.3"
+Build = 1
+Icon = "TaniumIcon.png"
+
+[Development]
+  HelperText = "This binary was built with debug symbols"
+
+[Release]
+  HelperText = "This binary was built without debug symbols"

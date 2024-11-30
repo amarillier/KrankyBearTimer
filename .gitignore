@@ -1,0 +1,38 @@
+# IGNORE
+# ssh keys
+*id_rsa*
+*id_dsa*
+authorized_keys*
+IAM*
+.DS_Store
+.vscode
+original/*
+sensors/*.ps1
+sensors/*.py
+sensors/*.sh
+templates/*
+test/*
+bin/*
+TaniumTimer.app
+TaniumTimer
+TaniumTimer.exe
+UNUSED/*
+Resources/*.txt
+Resources/*/notUsed
+
+# Distribution / packaging
+*.zip
+*.exe
+*.dmg
+
+# go modules, we should be able to get all of these any time
+vendor/*
+
+# Logs
+*.log
+
+# Unit test / coverage reports
+
+# ALLOW example
+!MicrosoftDefender.zip
+!packages/7z*
