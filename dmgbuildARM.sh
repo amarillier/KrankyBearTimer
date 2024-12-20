@@ -3,8 +3,8 @@
 # https://github.com/create-dmg/create-dmg
 
 # go build .
-# GOOS=linux GOARCH=arm64 go build -o bin/MacOSARM64/
-GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -o bin/MacOSARM64/
+# GOOS=linux GOARCH=arm64 go build -ldflags="-w -s" -o bin/MacOSARM64/
+GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
 
 # cp TaniumTimer TaniumTimer.app/Contents/MacOS
 cp bin/MacOSARM64/TaniumTimer TaniumTimer.app/Contents/MacOS

@@ -3,7 +3,7 @@
 # https://github.com/create-dmg/create-dmg
 
 # go build .
-GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -o bin/MacOSAMD64/
+GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
 
 cp bin/MacOSAMD64/TaniumTimer TaniumTimer.app/Contents/MacOS
 

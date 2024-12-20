@@ -6,6 +6,8 @@ require (
 	fyne.io/fyne/v2 v2.5.2
 	fyne.io/systray v1.11.0
 	github.com/gopxl/beep/v2 v2.1.0
+	github.com/itchyny/volume-go v0.2.2
+	github.com/spiretechnology/go-autostart/v2 v2.0.0
 )
 
 require (
@@ -20,6 +22,7 @@ require (
 	github.com/fyne-io/image v0.0.0-20240417123036-dc0ee9e7c964 // indirect
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-text/render v0.2.0 // indirect
 	github.com/go-text/typesetting v0.2.0 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
@@ -27,6 +30,7 @@ require (
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/jeandeaual/go-locale v0.0.0-20240223122105-ce5225dcaa49 // indirect
 	github.com/jsummers/gobmp v0.0.0-20230614200233-a9de23ed2e25 // indirect
+	github.com/moutend/go-wca v0.2.0 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.4.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

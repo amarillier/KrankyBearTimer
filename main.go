@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -27,15 +28,10 @@ import (
 
 const (
 	timerName      = "Tanium Timer"
-	timerVersion   = "0.3" // see FyneApp.toml
+	timerVersion   = "0.5" // see FyneApp.toml
 	timerCopyright = "(c) Tanium, 2024"
 	timerAuthor    = "Allan Marillier"
 )
-
-// preferences stored via fyne preferences API land in
-// ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
-// ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
-// {"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3", "sound.default":1}
 
 var running = binding.NewBool()
 var bg fyne.Canvas
@@ -49,12 +45,19 @@ var lunchTime int
 
 var imgDir string
 var timerbg string
+var starttimer int
 
 var sndDir string
 var endsnd string
 var oneminsnd string
 var halfminsnd string
 var debug int = 0
+var abt fyne.Window
+
+// preferences stored via fyne preferences API land in
+// ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
+// ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
+// {"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3", "sound.default":1}
 
 func main() {
 	exePath, err := os.Executable()
@@ -105,6 +108,7 @@ func main() {
 	endsnd = a.Preferences().StringWithFallback("endsound.default", "baseball.mp3")
 	oneminsnd = a.Preferences().StringWithFallback("oneminsound.default", "hero.mp3")
 	halfminsnd = a.Preferences().StringWithFallback("halfminsound.default", "sosumi.mp3")
+	starttimer = a.Preferences().IntWithFallback("starttimer.default", 0)
 	writeSettings(a)
 
 	if len(os.Args) >= 2 {
@@ -133,6 +137,7 @@ func main() {
 			log.Println("endsnd:", endsnd)
 			log.Println("oneminsnd:", oneminsnd)
 			log.Println("halfminsnd:", halfminsnd)
+			log.Println("starttimer:", starttimer)
 			adhocTime = 65 // debug value - short for easy test
 		}
 	}
@@ -165,16 +170,44 @@ func main() {
 			aboutText := timerName + " v " + timerVersion
 			aboutText += "\n" + timerCopyright
 			aboutText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
-			//egg := widget.NewButtonWithIcon("", theme.ContentRemoveIcon(), func() {
-			//		playBeep("ding")
-			//		return
-			//})
-			abt := a.NewWindow(timerName + ": About")
-			// abtxx := container.NewCenter(container.NewVBox(timeRow,	container.NewGridWithColumns(2, aboutText), egg))
-			abt.Resize(fyne.NewSize(50, 100))
-			abt.SetContent(widget.NewLabel(aboutText))
-			abt.CenterOnScreen() // run centered on primary (laptop) display
-			abt.Show()
+
+			if abt == nil || !abt.Content().Visible() {
+				abt = a.NewWindow(timerName + ": About")
+				abt.Resize(fyne.NewSize(50, 100))
+				abt.SetContent(widget.NewLabel(aboutText))
+				abt.SetCloseIntercept(func() {
+					abt.Close()
+					abt = nil
+				})
+				abt.CenterOnScreen() // run centered on primary (laptop) display
+				abt.Show()
+			} else {
+				// abt.Show()
+				// abt = nil
+				certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
+				rand.Seed(time.Now().UnixNano())
+				randomIndex := rand.Intn(len(certs))
+				egg := a.NewWindow(timerName + ": easter egg")
+				eggimage := canvas.NewImageFromResource(certs[randomIndex])
+				// eggimage := canvas.NewImageFromResource(resourceTCNSvg)
+				// eggimage := canvas.NewImageFromResource(resourceTcnPng)
+
+				eggimage.FillMode = canvas.ImageFillOriginal
+				text := "Whoo-hoo! You found the Easter egg!\n"
+				text += "\n" + dadjoke()
+				eggtext := widget.NewLabel(text)
+				content := container.NewVBox(eggimage, eggtext)
+				egg.SetContent(content)
+				egg.CenterOnScreen() // run centered on primary (laptop) display
+				for j := 0; j <= 2; j++ {
+					playBeep("down")
+					egg.Show()
+					time.Sleep(time.Second / 3)
+					egg.Hide()
+					time.Sleep(time.Second / 3)
+				}
+				egg.Show()
+			}
 		})
 		help := fyne.NewMenuItem("Help", func() {
 			hlp := a.NewWindow(timerName + ": Help")
@@ -188,12 +221,13 @@ For now we're adding as we go:
 - Timer text color is green until 2 1/2 minutes remain,
 	- color is orange from 2 1/2 minutes to 30 seconds
 	- color is red from 30 seconds to completion
+- optional setting to enable auto starting at boot
 
 - System tray notifications and sound alerts are both optional, enabled by default
 - Tone / beep alerts are at 60 seconds, at 30 seconds, and at completion
 - Timer window flashes on/off at timer end (in addition to desktop notification & beep)
 - A timer that has been hidden behind another window or minimized will be
-	brought to the front / focused at 60 seconds, and timer completion
+	brought to the front / focused at 60 seconds, and at timer completion
 
 - See Settings Info tab for more detail on settings / preferences
 
@@ -298,7 +332,10 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 		settings := fyne.NewMenuItem("Settings", func() {
 			makeSettings(a, w, bg)
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhoc, stop, fyne.NewMenuItemSeparator(), about, help, settings)
+		clock := fyne.NewMenuItem("Clock", func() {
+			clock(a) // , w, bg)
+		})
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhoc, stop, fyne.NewMenuItemSeparator(), clock, about, help, settings)
 		desk.SetSystemTrayMenu(menu)
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)

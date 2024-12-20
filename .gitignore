@@ -12,6 +12,7 @@ sensors/*.py
 sensors/*.sh
 templates/*
 test/*
+tst/*
 bin/*
 TaniumTimer.app
 TaniumTimer

@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	"github.com/spiretechnology/go-autostart/v2"
 )
 
 var fileButton *widget.Button
@@ -58,6 +59,27 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			sound = 0
 		}
 		a.Preferences().SetInt("sound.default", sound)
+	})
+	startatboot := widget.NewCheck("", func(value bool) {
+		if debug == 1 {
+			log.Println("startatboot set to", value)
+		}
+		autoTimer := autostart.New(autostart.Options{
+			Label:       "com.tanium.TaniumTimer",
+			Name:        "TaniumTimer",
+			Description: "Tanium Timer",
+			Mode:        autostart.ModeUser,
+			Arguments:   []string{},
+		})
+		switch value {
+		case true:
+			starttimer = 1
+			autoTimer.Enable()
+		case false:
+			starttimer = 0
+			autoTimer.Disable()
+		}
+		a.Preferences().SetInt("starttimer.default", starttimer)
 	})
 	background := widget.NewSelect([]string{"almond", "blue", "stone", "converge24", "converge24a", "taniumtimer2"}, func(value string) {
 		if debug == 1 {
@@ -166,6 +188,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		writeDefaultSettings(a)
 		notifications.SetChecked(true)
 		soundalerts.SetChecked(true)
+		startatboot.SetChecked(false)
 		timerbg = "blue"
 		endsnd = "baseball.mp3"
 		oneminsnd = "hero.mp3"
@@ -180,6 +203,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 
 		background.Refresh()
 		endsound.Refresh()
+		startatboot.Refresh()
 		oneminsound.Refresh()
 		halfminsound.Refresh()
 		adhoc.Refresh()
@@ -273,6 +297,7 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	setform := widget.NewForm(
 		widget.NewFormItem("Notifications", notifications),
 		widget.NewFormItem("Sound alerts", soundalerts),
+		widget.NewFormItem("Auto Start at Boot", startatboot),
 		widget.NewFormItem("Background", background),
 		widget.NewFormItem("Timer end sound", endsound),
 		widget.NewFormItem("One minute sound", oneminsound),
@@ -300,6 +325,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("lunch.default", 3600)
 	a.Preferences().SetInt("notify.default", 1)
 	a.Preferences().SetInt("sound.default", 1)
+	a.Preferences().SetInt("starttimer.default", 0)
 	a.Preferences().SetString("background.default", "blue")
 	a.Preferences().SetString("endsound.default", "baseball.mp3")
 	a.Preferences().SetString("oneminsound.default", "hero.mp3")
@@ -315,6 +341,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("lunch.default", lunchTime)
 	a.Preferences().SetInt("notify.default", notify)
 	a.Preferences().SetInt("sound.default", sound)
+	a.Preferences().SetInt("starttimer.default", starttimer)
 	a.Preferences().SetString("background.default", timerbg)
 	a.Preferences().SetString("endsound.default", endsnd)
 	a.Preferences().SetString("oneminsound.default", oneminsnd)

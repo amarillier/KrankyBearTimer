@@ -24,6 +24,7 @@ go get github.com/gen2brain/beeep
 go get -u github.com/gopxl/beep/v2
 go get -u github.com/gopxl/beep/mp3
 go get -u github.com/gopxl/beep/v2/mid
+go get github.com/spiretechnology/go-autostart/v2@v2.0.0
 
 Occasionally go mod vendor to resolve problems
 or for: build constraints exclude all Go files in ....
@@ -53,6 +54,14 @@ https://pkg.go.dev/github.com/gen2brain/beeep#Alert
 
 
 # png to svg online converter:
+BEST: Use Inkscape (free)
+- Open .png, .jpg etc, choose option (default) embed image
+- Use selection tool arrow, click in image, verify selected
+- click Path / Trace Bitmap / Pixel Art
+- check image preview, make changes if needed, update preview
+- Apply, wait a while ...
+- File, Save As, ...svg
+
 https://new.express.adobe.com/tools/convert-to-svg
 https://convertio.co/
 https://www.freeconvert.com/png-to-svg/download
