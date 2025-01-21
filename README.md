@@ -14,6 +14,14 @@
 * Color highlight when time is running out
 * System tray access
 
+# To-do / known problems
+- Allow optional always on top, save in prefs - may not be possible on Mac
+https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
+- Prevent settings window opening if already open
+- Prevent clock opening if already open
+- Add clock settings to settings window
+- Known problems - needsa OpenGL drivers on some Windows
+
 # modules
 go mod init TaniumTimer
 
