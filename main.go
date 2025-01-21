@@ -53,6 +53,9 @@ var oneminsnd string
 var halfminsnd string
 var debug int = 0
 var abt fyne.Window
+var hlp fyne.Window
+
+// var clock fyne.Window
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
@@ -171,7 +174,7 @@ func main() {
 			aboutText += "\n" + timerCopyright
 			aboutText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
 
-			if abt == nil || !abt.Content().Visible() {
+			if abt == nil { // || !abt.Content().Visible() {
 				abt = a.NewWindow(timerName + ": About")
 				abt.Resize(fyne.NewSize(50, 100))
 				abt.SetContent(widget.NewLabel(aboutText))
@@ -182,8 +185,7 @@ func main() {
 				abt.CenterOnScreen() // run centered on primary (laptop) display
 				abt.Show()
 			} else {
-				// abt.Show()
-				// abt = nil
+				// abt.RequestFocus()
 				certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
 				rand.Seed(time.Now().UnixNano())
 				randomIndex := rand.Intn(len(certs))
@@ -207,11 +209,13 @@ func main() {
 					time.Sleep(time.Second / 3)
 				}
 				egg.Show()
+				abt.RequestFocus()
 			}
 		})
 		help := fyne.NewMenuItem("Help", func() {
-			hlp := a.NewWindow(timerName + ": Help")
-			hlpText := `More help will be added later
+			if hlp == nil {
+				hlp = a.NewWindow(timerName + ": Help")
+				hlpText := `More help will be added later
 For now we're adding as we go:
 - Ad hoc timer minimum is 5 minutes, with 5 minute increments
 	- NOTE ad hoc default is updated in preferences to current value any time it is changed
@@ -233,14 +237,13 @@ For now we're adding as we go:
 
 - Default settings will be created on first run if they don't exist
 `
-			hlpText += "\n" + timerName + " v " + timerVersion
-			hlpText += "\n" + timerCopyright
-			hlpText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
+				hlpText += "\n" + timerName + " v " + timerVersion
+				hlpText += "\n" + timerCopyright
+				hlpText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
 
-			plnText := `- Open with timer window focused
+				plnText := `- Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumTimer 
-- Add a separate date / time clock tab so we can see current time
 - Add custom timer button, allow user to type no. minutes
 - Add lab timer button
 - Add more selectable timer buttons - list? Readable from prefs
@@ -257,21 +260,23 @@ For now we're adding as we go:
 - Add stop sounds button to stop the mp3/wav playing when enabled
 `
 
-			bugText := `
+				bugText := `
 - Activating tray menus causes running timer display to not show updates
 	until Help, About, Settings etc are selected
 	- But timer does continue to countdown, fix to run systray, settings etc in parallel
 - Settings changes to background and timer default times are saved immediately.
 	- Times are effective immediately, but timer button times and background
 		do not currently refresh to new settings
+- Settings needs additions to allow configuring clock settings
+- OpenGL drivers are required for some Windows systems
 	`
-			link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
-			if err != nil {
-				fyne.LogError("Could not parse URL", err)
-			}
-			hyperlink := widget.NewHyperlink("https://www.tanium.com/end-user-license-agreement-policy", link)
-			hyperlink.Alignment = fyne.TextAlignLeading
-			licText := `Tanium Timer is “Beta Software” as defined in the license agreement found at the link below. 
+				link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
+				if err != nil {
+					fyne.LogError("Could not parse URL", err)
+				}
+				hyperlink := widget.NewHyperlink("https://www.tanium.com/end-user-license-agreement-policy", link)
+				hyperlink.Alignment = fyne.TextAlignLeading
+				licText := `Tanium Timer is “Beta Software” as defined in the license agreement found at the link below. 
 Please take a moment to read the license agreement:
  
 In addition, please note that:
@@ -286,7 +291,7 @@ the terms of the License Agreement, and acknowledgement that this is Beta
 Software and the additional terms above
 `
 
-			settingsText := `Settings are a separate tray menu item
+				settingsText := `Settings are a separate tray menu item
 Settings contains defaults as below, which can be modified, and also reset to defaults:
 {"adhoc.default":300,"background.default":"blue","biobreak.default":600,
 	"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3",
@@ -314,20 +319,27 @@ When selected sounds are not present (removed from Sounds), Tanium Timer default
 Future additions will allow also choosing from any .mid or .wav sound files of your
 	choice if located in the Sounds directory
 `
-			lic := widget.NewLabel(licText)
-			tabs := container.NewDocTabs(
-				container.NewTabItem("Help", widget.NewLabel(hlpText)),
-				container.NewTabItem("Known Issues", widget.NewLabel(bugText)),
-				container.NewTabItem("Planned Updates", widget.NewLabel(plnText)),
-				container.NewTabItem("Settings Info", widget.NewLabel(settingsText)),
-				container.NewTabItem("License", container.NewVBox(lic, hyperlink)),
-			)
-			tabs.SetTabLocation(container.TabLocationTop)
-			tabs.Show()
-			hlp.Resize(fyne.NewSize(800, 300))
-			hlp.SetContent(tabs)
-			hlp.CenterOnScreen() // run centered on primary (laptop) display
-			hlp.Show()
+				lic := widget.NewLabel(licText)
+				tabs := container.NewDocTabs(
+					container.NewTabItem("Help", widget.NewLabel(hlpText)),
+					container.NewTabItem("Known Issues", widget.NewLabel(bugText)),
+					container.NewTabItem("Planned Updates", widget.NewLabel(plnText)),
+					container.NewTabItem("Settings Info", widget.NewLabel(settingsText)),
+					container.NewTabItem("License", container.NewVBox(lic, hyperlink)),
+				)
+				tabs.SetTabLocation(container.TabLocationTop)
+				tabs.Show()
+				hlp.Resize(fyne.NewSize(800, 300))
+				hlp.SetContent(tabs)
+				hlp.SetCloseIntercept(func() {
+					hlp.Close()
+					hlp = nil
+				})
+				hlp.CenterOnScreen() // run centered on primary (laptop) display
+				hlp.Show()
+			} else {
+				hlp.RequestFocus()
+			}
 		})
 		settings := fyne.NewMenuItem("Settings", func() {
 			makeSettings(a, w, bg)
@@ -555,9 +567,8 @@ func updateTime(out *widget.RichText, time int) {
 To-do:
 - Allow optional always on top, save in prefs - may not be possible on Mac
 https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
-- Prevent settings window opening if already open
 - Prevent clock opening if already open
 - Add clock settings to settings window
-- Known problems - needsa OpenGL drivers on some Windows
+- Known problems - needs OpenGL drivers on some Windows
 -
 */
