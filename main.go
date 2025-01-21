@@ -28,8 +28,8 @@ import (
 
 const (
 	timerName      = "Tanium Timer"
-	timerVersion   = "0.5" // see FyneApp.toml
-	timerCopyright = "(c) Tanium, 2024"
+	timerVersion   = "0.6" // see FyneApp.toml
+	timerCopyright = "(c) Tanium, 2024, 2025"
 	timerAuthor    = "Allan Marillier"
 )
 

@@ -64,6 +64,10 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		/**/
 
 		c.SetContent(content)
+		c.SetCloseIntercept(func() {
+			c.Close()
+			c = nil
+		})
 		c.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
 		// c.Resize(fyne.NewSize(300, 200))
 		// c.ShowAndRun()  // for standalone clock app
