@@ -16,20 +16,33 @@
 
 # modules
 go mod init TaniumTimer
+
 go mod tidy
+
 go get fyne.io/fyne/v2@latest
+
 go install fyne.io/fyne/v2/cmd/fyne@latest
+
 go install fyne.io/fyne/v2/cmd/fyne_demo@latest // gets fyne_demo etc
+
 go get github.com/gen2brain/beeep
+
 go get -u github.com/gopxl/beep/v2
+
 go get -u github.com/gopxl/beep/mp3
+
 go get -u github.com/gopxl/beep/v2/mid
+
 go get github.com/spiretechnology/go-autostart/v2@v2.0.0
 
 Occasionally go mod vendor to resolve problems
+
 or for: build constraints exclude all Go files in ....
+
 go clean -modcache
+
 go mod tidy
+
 https://stackoverflow.com/questions/55348458/build-constraints-exclude-all-go-files-in
 
 
