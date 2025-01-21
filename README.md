@@ -22,6 +22,8 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 - Prevent clock opening if already open
 - Add clock settings to settings window
 - Known problems - needs OpenGL drivers on some Windows
+- Improve performance - this is a bit CPU / memory intensive, likely mostly due to displaying seconds and updating the timer display every second
+  - if done every minute isntead and seconds not show, CPU use should reduce a decent bit
 
 # modules
 go mod init TaniumTimer
