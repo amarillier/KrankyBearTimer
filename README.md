@@ -25,7 +25,7 @@ go install fyne.io/fyne/v2/cmd/fyne@latest
 
 go install fyne.io/fyne/v2/cmd/fyne_demo@latest // gets fyne_demo etc
 
-go get github.com/gen2brain/beeep
+go get github.com/gen2brain/beeep  // NOTE: prefer gopxl beep over this, removing all references to beeep
 
 go get -u github.com/gopxl/beep/v2
 
