@@ -20,7 +20,7 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 - Prevent settings window opening if already open
 - Prevent clock opening if already open
 - Add clock settings to settings window
-- Known problems - needsa OpenGL drivers on some Windows
+- Known problems - needs OpenGL drivers on some Windows
 
 # modules
 go mod init TaniumTimer
