@@ -1,4 +1,4 @@
-# Tanium Timer
+# Tanium Timer - personal fun / learning side project
 
 # preferences stored via fyne preferences API land in
 # ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
