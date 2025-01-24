@@ -51,6 +51,32 @@ var sndDir string
 var endsnd string
 var oneminsnd string
 var halfminsnd string
+
+var showseconds int
+var showtimezone int
+var showdate int
+var showutc int
+var showhr12 int
+var hourchime int
+var bgcolor string
+var timecolor string
+var datecolor string
+var utccolor string
+var timefont string
+var datefont string
+var utcfont string
+var timesize int
+var datesize int
+var utcsize int
+var hourchimesound string
+var startclock int
+
+/*
+	minor difference from clock app which sets OS autostart,
+	this in the timer app will influence opening the clock window
+	when the timer app starts
+*/
+
 var debug int = 0
 var abt fyne.Window
 var hlp fyne.Window
@@ -101,7 +127,7 @@ func main() {
 		// add some default prefs that can be modified via settings
 		writeDefaultSettings(a)
 	}
-	// get default settings from preferences
+	// get default timer settings from preferences
 	lunchTime = a.Preferences().IntWithFallback("lunch.default", 60*60)
 	adhocTime = a.Preferences().IntWithFallback("adhoc.default", 5*60)
 	biobreakTime = a.Preferences().IntWithFallback("biobreak.default", 10*60)
@@ -112,7 +138,25 @@ func main() {
 	oneminsnd = a.Preferences().StringWithFallback("oneminsound.default", "hero.mp3")
 	halfminsnd = a.Preferences().StringWithFallback("halfminsound.default", "sosumi.mp3")
 	starttimer = a.Preferences().IntWithFallback("starttimer.default", 0)
-	writeSettings(a)
+	// get default clock settings from preferences
+	showseconds = a.Preferences().IntWithFallback("showseconds.default", 1)
+	showtimezone = a.Preferences().IntWithFallback("showtimezone.default", 1)
+	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
+	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
+	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	hourchime = a.Preferences().IntWithFallback("hourchime.default", 1)
+	bgcolor = a.Preferences().StringWithFallback("bgcolor.default", "0,143,251,255")      // blue
+	timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255") // orange
+	datecolor = a.Preferences().StringWithFallback("datecolor.default", "131,222,74,255") // red
+	utccolor = a.Preferences().StringWithFallback("utccolor.default", "238,229,58.255")   // yellow
+	timefont = a.Preferences().StringWithFallback("timefont.default", "arial")            // not yet!
+	datefont = a.Preferences().StringWithFallback("datefont.default", "arial")            // not yet!
+	utcfont = a.Preferences().StringWithFallback("utcfont.default", "arial")              // not yet!
+	timesize = a.Preferences().IntWithFallback("timesize.default", 36)
+	datesize = a.Preferences().IntWithFallback("datesize.default", 24)
+	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
+	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
+	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
 
 	if len(os.Args) >= 2 {
 		log.Println("arg count:", len(os.Args))
@@ -150,6 +194,9 @@ func main() {
 
 	if desk, ok := a.(desktop.App); ok {
 		desk.SetSystemTrayIcon(resourceTaniumIconSvg)
+		if startclock == 1 {
+			clock(a) // , w, bg)
+		}
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)
 		show := fyne.NewMenuItem("Show", func() {
@@ -342,7 +389,7 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 			}
 		})
 		settings := fyne.NewMenuItem("Settings", func() {
-			makeSettings(a, w, bg)
+			makeSettingsTimer(a, w, bg)
 		})
 		clock := fyne.NewMenuItem("Clock", func() {
 			clock(a) // , w, bg)

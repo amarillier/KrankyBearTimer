@@ -2,6 +2,8 @@ package main
 
 import (
 	"image/color"
+	"strconv"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -15,44 +17,131 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 	if c != nil { // &&  !c.Content().Visible() {
 		c.RequestFocus()
 	} else {
+		var tre, tgr, tbl, ta uint8
+		colors := strings.Split(timecolor, ",")
+		col, _ := strconv.ParseUint(colors[0], 10, 8)
+		tre = uint8(col)
+		col, _ = strconv.ParseUint(colors[1], 10, 8)
+		tgr = uint8(col)
+		col, _ = strconv.ParseUint(colors[2], 10, 8)
+		tbl = uint8(col)
+		col, _ = strconv.ParseUint(colors[3], 10, 8)
+		ta = uint8(col)
+
+		var bre, bgr, bbl, ba uint8
+		colors = strings.Split(bgcolor, ",")
+		col, _ = strconv.ParseUint(colors[0], 10, 8)
+		bre = uint8(col)
+		col, _ = strconv.ParseUint(colors[1], 10, 8)
+		bgr = uint8(col)
+		col, _ = strconv.ParseUint(colors[2], 10, 8)
+		bbl = uint8(col)
+		col, _ = strconv.ParseUint(colors[3], 10, 8)
+		ba = uint8(col)
+
+		var dre, dgr, dbl, da uint8
+		colors = strings.Split(datecolor, ",")
+		col, _ = strconv.ParseUint(colors[0], 10, 8)
+		dre = uint8(col)
+		col, _ = strconv.ParseUint(colors[1], 10, 8)
+		dgr = uint8(col)
+		col, _ = strconv.ParseUint(colors[2], 10, 8)
+		dbl = uint8(col)
+		col, _ = strconv.ParseUint(colors[3], 10, 8)
+		da = uint8(col)
+
+		var ure, ugr, ubl, ua uint8
+		colors = strings.Split(utccolor, ",")
+		col, _ = strconv.ParseUint(colors[0], 10, 8)
+		ure = uint8(col)
+		col, _ = strconv.ParseUint(colors[1], 10, 8)
+		ugr = uint8(col)
+		col, _ = strconv.ParseUint(colors[2], 10, 8)
+		ubl = uint8(col)
+		col, _ = strconv.ParseUint(colors[3], 10, 8)
+		ua = uint8(col)
+
 		c = a.NewWindow("Tanium Clock")
 
 		now := time.Now()
 		// timeFormat := `15:04:05`
-		timeFormat := `3:04:05 PM (MST)`
+		// timeFormat := `3:04:05 PM (MST)`
+		timeFormat := ``
+		if showhr12 == 1 {
+			timeFormat += `3:04`
+		} else {
+			timeFormat += `15:04`
+		}
+		if showseconds == 1 {
+			timeFormat += `:05`
+		}
+		if showhr12 == 1 {
+			timeFormat += ` PM` // this needs to be added AFTER seconds if 12 hour
+		}
+		if showtimezone == 1 {
+			timeFormat += ` (MST)`
+		}
+
 		utcFormat := `(UTC 3:04 PM Z07)`
 		dateFormat := ` Monday, January 2, 2006 `
-		// Create the first label
-		nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 0, B: 0, A: 255})
+
+		// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
+		nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: tre, G: tgr, B: tbl, A: ta})
 		nowtime.TextStyle = fyne.TextStyle{Bold: true}
+		// nowtime.TextStyle = fyne.TextStyle{Monospace: true} // EXAMPLE FONT TYPE
 		nowtime.Alignment = fyne.TextAlignCenter
-		// nowtime = canvas.TextStyle{Alignment: canvas.AlignmentCenter}
-		nowtime.TextSize = 48
-		utctime := canvas.NewText(now.Format(utcFormat), color.RGBA{R: 243, G: 119, B: 53, A: 255})
+		nowtime.TextSize = float32(timesize)
+
+		// utctime := canvas.NewText(now.Format(utcFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
+		utctime := canvas.NewText(now.Format(utcFormat), color.RGBA{R: ure, G: ugr, B: ubl, A: ua})
 		utctime.TextStyle = fyne.TextStyle{Bold: true}
 		utctime.Alignment = fyne.TextAlignCenter
+		utctime.TextSize = float32(utcsize)
 
-		// Create the second label
-		nowdate := canvas.NewText(now.Format(dateFormat), color.RGBA{R: 243, G: 119, B: 53, A: 255})
+		// nowdate := canvas.NewText(now.Format(dateFormat), color.RGBA{R: 208, G: 145, B: 38, A: 255})
+		nowdate := canvas.NewText(now.Format(dateFormat), color.RGBA{R: dre, G: dgr, B: dbl, A: da})
 		nowdate.TextStyle = fyne.TextStyle{Bold: true}
 		nowdate.Alignment = fyne.TextAlignCenter
-		nowdate.TextSize = 24
+		nowdate.TextSize = float32(datesize)
 
-		// Create a rectangle with blue background
-		background := canvas.NewRectangle(color.RGBA{R: 0, G: 0, B: 255, A: 255})
+		//background := canvas.NewRectangle(color.RGBA{R: 0, G: 0, B: 255, A: 255})
+		// bgcolor := color.RGBA{R: 0, G: 143, B: 251, A: 255}
+		bgcolor := color.RGBA{R: bre, G: bgr, B: bbl, A: ba}
+		background := canvas.NewRectangle(bgcolor)
 
-		// Create a container to hold the labels and background
-		content := container.NewStack(background, container.NewVBox(nowtime, nowdate, utctime))
+		vbox := container.NewVBox()
+		if showutc == 1 {
+			if showdate == 1 {
+				vbox = container.NewVBox(nowtime, nowdate, utctime)
+			} else {
+				vbox = container.NewVBox(nowtime, utctime)
+			}
+		} else {
+			if showdate == 1 {
+				vbox = container.NewVBox(nowtime, nowdate)
+			} else {
+				vbox = container.NewVBox(nowtime)
+			}
+		}
+		content := container.NewStack(background, vbox)
+		// content := container.NewStack(background, container.NewVBox(nowtime, nowdate, utctime))
 
 		/**/
 		updateClock := func() {
 			now = time.Now()
+			if now.Minute() == 0 && now.Second() == 0 {
+				if hourchime == 1 {
+					playMp3(sndDir + "/" + hourchimesound)
+				}
+			}
 			nowtime.Text = now.Format(timeFormat)
-			utctime.Text = now.Format(utcFormat)
-			nowdate.Text = now.Format(dateFormat)
 			nowtime.Refresh()
-			utctime.Refresh()
 			nowdate.Refresh()
+			nowdate.Text = now.Format(dateFormat)
+			if showutc == 1 {
+				utctime.Text = now.Format(utcFormat)
+				utctime.Refresh()
+			}
 		}
 
 		updateClock()

@@ -17,7 +17,7 @@ var selectedFile *widget.Label
 var fileURI fyne.URI
 var settings fyne.Window
 
-func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
+func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
 	if settings != nil { // &&  !settings.Content().Visible() {
 		settings.RequestFocus()
@@ -318,6 +318,10 @@ func makeSettings(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		// settings.SetIcon(resourceRedSettingsGearSvg)
 		settings.CenterOnScreen() // run centered on primary (laptop) display
 		settings.SetContent(container.NewVBox(setText, setform, todoText))
+		settings.SetCloseIntercept(func() {
+			settings.Close()
+			settings = nil
+		})
 		settings.Show()
 	}
 }
@@ -334,6 +338,25 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetString("endsound.default", "baseball.mp3")
 	a.Preferences().SetString("oneminsound.default", "hero.mp3")
 	a.Preferences().SetString("halfminsound.default", "sosumi.mp3")
+	// clock default settings
+	a.Preferences().SetInt("showseconds.default", 1)
+	a.Preferences().SetInt("showtimezone.default", 1)
+	a.Preferences().SetInt("showutc.default", 1)
+	a.Preferences().SetInt("showdate.default", 1)
+	a.Preferences().SetInt("showhr12.default", 1)
+	a.Preferences().SetInt("hourchime.default", 1)
+	a.Preferences().SetString("bgcolor.default", "0,143,251,255")
+	a.Preferences().SetString("timecolor.default", "255,123,31,255")
+	a.Preferences().SetString("datecolor.default", "131,222,74,255")
+	a.Preferences().SetString("utccolor.default", "238,229,58,255")
+	a.Preferences().SetString("timefont.default", "arial")
+	a.Preferences().SetString("datefont.default", "arial")
+	a.Preferences().SetString("utcfont.default", "arial")
+	a.Preferences().SetInt("timesize.default", 48)
+	a.Preferences().SetInt("datesize.default", 24)
+	a.Preferences().SetInt("utcsize.default", 18)
+	a.Preferences().SetString("hourchimesound.default", "cuckoo.mp3")
+	a.Preferences().SetInt("startclock.default", startclock)
 	// example prefs:
 	//{"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3"}
 }
@@ -350,6 +373,25 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetString("endsound.default", endsnd)
 	a.Preferences().SetString("oneminsound.default", oneminsnd)
 	a.Preferences().SetString("halfminsound.default", halfminsnd)
+	// clock settings
+	a.Preferences().SetInt("showseconds.default", showseconds)
+	a.Preferences().SetInt("showtimezone.default", showtimezone)
+	a.Preferences().SetInt("showutc.default", showutc)
+	a.Preferences().SetInt("showdate.default", showdate)
+	a.Preferences().SetInt("showhr12.default", showhr12)
+	a.Preferences().SetInt("hourchime.default", hourchime)
+	a.Preferences().SetString("bgcolor.default", bgcolor)
+	a.Preferences().SetString("timecolor.default", timecolor)
+	a.Preferences().SetString("datecolor.default", datecolor)
+	a.Preferences().SetString("utccolor.default", utccolor)
+	a.Preferences().SetString("timefont.default", timefont)
+	a.Preferences().SetString("datefont.default", datefont)
+	a.Preferences().SetString("utcfont.default", utcfont)
+	a.Preferences().SetInt("timesize.default", timesize)
+	a.Preferences().SetInt("datesize.default", datesize)
+	a.Preferences().SetInt("utcsize.default", utcsize)
+	a.Preferences().SetString("hourchimesound.default", hourchimesound)
+	a.Preferences().SetInt("startclock.default", startclock)
 }
 
 func showFilePicker(w fyne.Window) {

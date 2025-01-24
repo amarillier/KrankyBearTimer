@@ -49,11 +49,11 @@ linuxarm64:
  	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/LinuxARM64/
 .PHONY:linuxarm64
 
-macosamd64:
+macamd64:
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
 .PHONY:macamd64
 
-macosarm64:
+macarm64:
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
 .PHONY:macarm64
 
@@ -66,7 +66,7 @@ winarm64:
 .PHONY:winarm64
 
 
-buildall: linuxamd64 linuxarm64 macosamd64 macosarm64 winamd64 winarm64
+buildall: linuxamd64 linuxarm64 macamd64 macarm64 winamd64 winarm64
 .PHONY:buildall
 
 clean:
