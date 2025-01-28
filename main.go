@@ -28,7 +28,7 @@ import (
 
 const (
 	timerName      = "Tanium Timer"
-	timerVersion   = "0.6" // see FyneApp.toml
+	timerVersion   = "0.7" // see FyneApp.toml
 	timerCopyright = "(c) Tanium, 2024, 2025"
 	timerAuthor    = "Allan Marillier"
 )
@@ -312,6 +312,7 @@ It also includes an optional desktop clock that can be set to auto start when th
 - Allow optional always on top, save in prefs
 - Settings allow user selectable mid / wav
 - Add stop sounds button to stop the mp3/wav playing when enabled
+- Possibly add one or more clock alarms - one time, recurring etc.
 `
 
 				bugText := `
@@ -321,7 +322,8 @@ It also includes an optional desktop clock that can be set to auto start when th
 - Settings changes to background and timer default times are saved immediately.
 	- Times are effective immediately, but timer button times and background
 		do not currently refresh to new settings
-- OpenGL drivers are required for some Windows systems
+- OpenGL drivers are required for some Windows systems, not a bug but a
+	specific library requirement that might not allow some to use this app
 	`
 				link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
 				if err != nil {

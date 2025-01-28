@@ -131,7 +131,11 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			now = time.Now()
 			if now.Minute() == 0 && now.Second() == 0 {
 				if hourchime == 1 {
-					playMp3(sndDir + "/" + hourchimesound)
+					if !checkFileExists(sndDir + "/" + hourchimesound) {
+						playBeep("updown")
+					} else {
+						playMp3(sndDir + "/" + hourchimesound)
+					}
 				}
 			}
 			nowtime.Text = now.Format(timeFormat)

@@ -25,3 +25,5 @@ create-dmg \
   # "./"
 
     ./setIcon.sh TaniumTimer.png TaniumTimerARM.dmg
+    cp TaniumTimerARM.dmg installers
+    
