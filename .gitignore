@@ -37,3 +37,4 @@ vendor/*
 # ALLOW example
 !MicrosoftDefender.zip
 !packages/7z*
+!installers/*
