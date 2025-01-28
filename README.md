@@ -1,29 +1,31 @@
 # Tanium Timer - personal fun / learning side project
 
-# preferences stored via fyne preferences API land in
-# ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
-# ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
+preferences stored via fyne preferences API land in
+~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
+~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
+MacOS resource location (sounds and backgrounds): /Applications/Tanium Timer.app/Contents/Resources
 
 
 ## Features
 
+Basic list - see help in the app for more detail
 * Ad hoc time settable in 5 minute steps
 * Bio break timer 10 minutes
 * Lunch break timer 60 minutes
 * Notifications when the timer is done
 * Color highlight when time is running out
+* Optional customizable desktop clock with seconds, UTC time, date, hourly chime
 * System tray access
 
 # To-do / known problems
 - Allow optional always on top, save in prefs - may not be possible on Mac
 https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
-- Prevent settings window opening if already open
-- Prevent help window opening if already open
-- Prevent clock opening if already open
-- Add clock settings to settings window
+
 - Known problems - needs OpenGL drivers on some Windows
 - Improve performance - this is a bit CPU / memory intensive, likely mostly due to displaying seconds and updating the timer display every second
-  - if done every minute isntead and seconds not show, CPU use should reduce a decent bit
+  - if done every minute instead and seconds not show, CPU use should reduce a decent bit
+
+# Info for compiling / modifying
 
 # modules
 go mod init TaniumTimer
