@@ -262,8 +262,9 @@ func main() {
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
 				hlp = a.NewWindow(timerName + ": Help")
-				hlpText := `More help will be added later
-For now we're adding as we go:
+				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
+It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
+
 - Ad hoc timer minimum is 5 minutes, with 5 minute increments
 	- NOTE ad hoc default is updated in preferences to current value any time it is changed
 - Bio break timer default is 10 minutes
@@ -280,6 +281,11 @@ For now we're adding as we go:
 - A timer that has been hidden behind another window or minimized will be
 	brought to the front / focused at 60 seconds, and at timer completion
 
+- The separate clock window allows optional display of seconds, date, UTC time,
+  with customizable background and text colors available, configured through 
+  a separate settings menu item
+- autostart clock when starting the timer is also available, in clock settings
+
 - See Settings Info tab for more detail on settings / preferences
 
 - Default settings will be created on first run if they don't exist
@@ -288,7 +294,8 @@ For now we're adding as we go:
 				hlpText += "\n" + timerCopyright
 				hlpText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
 
-				plnText := `- Open with timer window focused
+				plnText := `- Possibly add clock settings tab to timer settings rather than have separate menu items
+- Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumTimer 
 - Add custom timer button, allow user to type no. minutes
@@ -314,7 +321,6 @@ For now we're adding as we go:
 - Settings changes to background and timer default times are saved immediately.
 	- Times are effective immediately, but timer button times and background
 		do not currently refresh to new settings
-- Settings needs additions to allow configuring clock settings
 - OpenGL drivers are required for some Windows systems
 	`
 				link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
@@ -340,10 +346,19 @@ Software and the additional terms above
 
 				settingsText := `Settings are a separate tray menu item
 Settings contains defaults as below, which can be modified, and also reset to defaults:
-{"adhoc.default":300,"background.default":"blue","biobreak.default":600,
-	"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3",
-	"lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3",
-	"sound.default":1}
+{"adhoc.default":300,"background.default":"blue",
+"bgcolor.default":"0,143,251,255","biobreak.default":600,
+"datecolor.default":"131,222,74,255","datefont.default":"arial",
+"datesize.default":24,"endsound.default":"baseball.mp3",
+"halfminsound.default":"sosumi.mp3","hourchime.default":1,
+"hourchimesound.default":"cuckoo.mp3","lunch.default":3600,
+"notify.default":1,"oneminsound.default":"hero.mp3",
+"showdate.default":1,"showhr12.default":1,"showseconds.default":1,
+"showtimezone.default":1,"showutc.default":1,"sound.default":1,
+"startclock.default":1,"starttimer.default":0,
+"timecolor.default":"255,123,31,255","timefont.default":"arial",
+"timesize.default":48,"utccolor.default":"238,229,58,255",
+"utcfont.default":"arial","utcsize.default":18}
 
 Tanium Timer looks for directories named Resources/Images and Resources/Sounds,
 containing images and sounds.
@@ -365,6 +380,8 @@ When selected sounds are not present (removed from Sounds), Tanium Timer default
 	to playing built in tones ding, down, up or updown
 Future additions will allow also choosing from any .mid or .wav sound files of your
 	choice if located in the Sounds directory
+
+MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 `
 				lic := widget.NewLabel(licText)
 				tabs := container.NewDocTabs(
@@ -388,13 +405,16 @@ Future additions will allow also choosing from any .mid or .wav sound files of y
 				hlp.RequestFocus()
 			}
 		})
-		settings := fyne.NewMenuItem("Settings", func() {
+		settings := fyne.NewMenuItem("Settings (Timer)", func() {
 			makeSettingsTimer(a, w, bg)
+		})
+		settingsClock := fyne.NewMenuItem("Settings (Clock)", func() {
+			makeSettingsClock(a, w, bg)
 		})
 		clock := fyne.NewMenuItem("Clock", func() {
 			clock(a) // , w, bg)
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhoc, stop, fyne.NewMenuItemSeparator(), clock, about, help, settings)
+		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhoc, stop, fyne.NewMenuItemSeparator(), clock, about, help, settings, settingsClock)
 		desk.SetSystemTrayMenu(menu)
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)

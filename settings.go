@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"image/color"
 	"log"
 	"strconv"
 
@@ -8,6 +10,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/spiretechnology/go-autostart/v2"
 )
@@ -15,14 +18,16 @@ import (
 var fileButton *widget.Button
 var selectedFile *widget.Label
 var fileURI fyne.URI
-var settings fyne.Window
+var settingst fyne.Window
+var settingsc fyne.Window
+var mycolor color.Color
 
 func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
-	if settings != nil { // &&  !settings.Content().Visible() {
-		settings.RequestFocus()
+	if settingst != nil { // &&  !settingst.Content().Visible() {
+		settingst.RequestFocus()
 	} else {
-		settings = a.NewWindow(timerName + ": Settings")
+		settingst = a.NewWindow(timerName + ": Settings")
 		settingsText := `All updates are applied / saved immediately.
 	Note: timer background and timer buttons on the timer window do not currently auto refresh,
 	restart is required. Time changes do take immediate effect, refresh of background and buttons is planned`
@@ -246,7 +251,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		})
 		reset.Importance = widget.SuccessImportance // green
 		close := widget.NewButton("Close settings", func() {
-			settings.Close()
+			settingst.Close()
 		})
 		close.Importance = widget.WarningImportance // orange
 
@@ -314,15 +319,15 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("", close),
 		)
 
-		settings.Resize(fyne.NewSize(500, 300))
-		// settings.SetIcon(resourceRedSettingsGearSvg)
-		settings.CenterOnScreen() // run centered on primary (laptop) display
-		settings.SetContent(container.NewVBox(setText, setform, todoText))
-		settings.SetCloseIntercept(func() {
-			settings.Close()
-			settings = nil
+		settingst.Resize(fyne.NewSize(500, 300))
+		// settingst.SetIcon(resourceRedSettingsGearSvg)
+		settingst.CenterOnScreen() // run centered on primary (laptop) display
+		settingst.SetContent(container.NewVBox(setText, setform, todoText))
+		settingst.SetCloseIntercept(func() {
+			settingst.Close()
+			settingst = nil
 		})
-		settings.Show()
+		settingst.Show()
 	}
 }
 
@@ -392,6 +397,479 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("utcsize.default", utcsize)
 	a.Preferences().SetString("hourchimesound.default", hourchimesound)
 	a.Preferences().SetInt("startclock.default", startclock)
+}
+
+func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
+	// settings window
+	if settingsc != nil { // &&  !settingsc.Content().Visible() {
+		settingsc.RequestFocus()
+	} else {
+		settingsc = a.NewWindow(timerName + ": Clock Settings")
+		settingsText := `All updates are applied / saved immediately.
+	Note: settings do not currently auto refresh, restart is required.`
+		setText := widget.NewLabel(settingsText)
+		setText.TextStyle = fyne.TextStyle{Bold: true}
+
+		todoText := `Still to be added: 
+	font type selection
+	allow .mid and .wav sounds
+	background color or selectable background images in addition to built in images`
+		doText := widget.NewLabel(todoText)
+		doText.TextStyle = fyne.TextStyle{Italic: true, Bold: true}
+
+		mp3files, err := listMatchingFiles(sndDir, "*.mp3")
+		if err != nil {
+			log.Fatal(err)
+		}
+		mp3 := []string{"ding", "down", "up", "updown"}
+		for _, file := range mp3files {
+			mp3 = append(mp3, file)
+		}
+
+		showsec := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("showseconds set to", value)
+			}
+			switch value {
+			case true:
+				showseconds = 1
+			case false:
+				showseconds = 0
+			}
+			a.Preferences().SetInt("showseconds.default", showseconds)
+		})
+		showdt := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("show date set to", value)
+			}
+			switch value {
+			case true:
+				showdate = 1
+			case false:
+				showdate = 0
+			}
+			a.Preferences().SetInt("showdate.default", showdate)
+		})
+		showtz := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("showtimezone set to", value)
+			}
+			switch value {
+			case true:
+				showtimezone = 1
+			case false:
+				showtimezone = 0
+			}
+			a.Preferences().SetInt("showtimezone.default", showtimezone)
+		})
+		showut := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("showutc set to", value)
+			}
+			switch value {
+			case true:
+				showutc = 1
+			case false:
+				showutc = 0
+			}
+			a.Preferences().SetInt("showutc.default", showutc)
+		})
+		showhr1224 := widget.NewRadioGroup([]string{"12", "24"}, func(value string) {
+			if debug == 1 {
+				log.Println("12 / 24 time set to", value)
+			}
+			switch value {
+			case "12":
+				showhr12 = 1
+			case "24":
+				showhr12 = 0
+			}
+			a.Preferences().SetInt("showhr12.default", showhr12)
+		})
+		showhr1224.Horizontal = true
+		chime := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("hourchime set to", value)
+			}
+			switch value {
+			case true:
+				hourchime = 1
+			case false:
+				hourchime = 0
+			}
+			a.Preferences().SetInt("hourchime.default", hourchime)
+		})
+		chimesound := widget.NewSelect(mp3, func(value string) {
+			if debug == 1 {
+				log.Println("chimesound set to", value)
+			}
+			hourchimesound = value // strings.Replace(value, "builtin ", "", 1)
+			switch hourchimesound {
+			case "up", "down", "updown", "ding":
+				playBeep(hourchimesound) // built in sounds
+			default:
+				playMp3(sndDir + "/" + hourchimesound)
+			}
+			a.Preferences().SetString("hourchimesound.default", hourchimesound)
+		})
+		startatboot := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("startatboot set to", value)
+			}
+
+			/*
+				autoClock := autostart.New(autostart.Options{
+					Label:       "com.tanium.TaniumClock",
+					Name:        "TaniumClock",
+					Description: "Tanium Clock",
+					Mode:        autostart.ModeUser,
+					Arguments:   []string{},
+				})
+			*/
+			autoClock := autostart.New(autostart.Options{
+				Label:       "com.tanium.TaniumTimer",
+				Name:        "TaniumTimer",
+				Description: "Tanium Timer",
+				Mode:        autostart.ModeUser,
+				Arguments:   []string{},
+			})
+			switch value {
+			case true:
+				startclock = 1
+				autoClock.Enable()
+			case false:
+				startclock = 0
+				autoClock.Disable()
+			}
+			a.Preferences().SetInt("startclock.default", startclock)
+		})
+
+		tsz := widget.NewEntry()
+		tsz.SetText(strconv.Itoa(timesize))
+		tsz.OnChanged = func(value string) {
+			if debug == 1 {
+				log.Println("time font size set to", value)
+			}
+			timesize, err = strconv.Atoi(value)
+			if err != nil {
+				playBeep("ding")
+				tsz.SetText(strconv.Itoa(48))
+			} else {
+				switch {
+				case timesize < 10:
+					timesize = 10
+					value = strconv.Itoa(10)
+				case timesize > 200:
+					timesize = 200
+					value = strconv.Itoa(200)
+				}
+				tsz.SetText(strconv.Itoa(timesize))
+				a.Preferences().SetInt("timesize.default", timesize)
+			}
+		}
+		// Create buttons for increase and decrease
+		tincrease := widget.NewButton("▲", func() {
+			value, _ := strconv.Atoi(tsz.Text)
+			if value < 200 {
+				tsz.SetText(fmt.Sprintf("%d", value+1))
+				timesize = value + 1
+				a.Preferences().SetInt("timesize.default", timesize)
+			} else {
+				playBeep("ding")
+			}
+		})
+		tdecrease := widget.NewButton("▼", func() {
+			value, _ := strconv.Atoi(tsz.Text)
+			if value > 10 {
+				tsz.SetText(fmt.Sprintf("%d", value-1))
+				timesize = value - 1
+				a.Preferences().SetInt("timesize.default", timesize)
+			} else {
+				playBeep("ding")
+			}
+		})
+
+		dsz := widget.NewEntry()
+		dsz.SetText(strconv.Itoa(datesize))
+		dsz.OnChanged = func(value string) {
+			if debug == 1 {
+				log.Println("date font size set to", value)
+			}
+			datesize, err = strconv.Atoi(value)
+			if err != nil {
+				playBeep("ding")
+				tsz.SetText(strconv.Itoa(24))
+			} else {
+				switch {
+				case datesize < 10:
+					datesize = 10
+					value = strconv.Itoa(10)
+				case datesize > 200:
+					datesize = 200
+					value = strconv.Itoa(200)
+				}
+				dsz.SetText(strconv.Itoa(datesize))
+				a.Preferences().SetInt("datesize.default", datesize)
+			}
+		}
+		// Create buttons for increase and decrease
+		dincrease := widget.NewButton("▲", func() {
+			value, _ := strconv.Atoi(dsz.Text)
+			if value < 200 {
+				dsz.SetText(fmt.Sprintf("%d", value+1))
+				datesize = value + 1
+				a.Preferences().SetInt("datesize.default", datesize)
+			} else {
+				playBeep("ding")
+			}
+		})
+		ddecrease := widget.NewButton("▼", func() {
+			value, _ := strconv.Atoi(dsz.Text)
+			if value > 10 {
+				dsz.SetText(fmt.Sprintf("%d", value-1))
+				datesize = value - 1
+				a.Preferences().SetInt("datesize.default", datesize)
+			} else {
+				playBeep("ding")
+			}
+		})
+
+		usz := widget.NewEntry()
+		usz.SetText(strconv.Itoa(utcsize))
+		usz.OnChanged = func(value string) {
+			if debug == 1 {
+				log.Println("utc font size set to", value)
+			}
+			utcsize, err = strconv.Atoi(value)
+			if err != nil {
+				playBeep("ding")
+				usz.SetText(strconv.Itoa(18))
+			} else {
+				switch {
+				case utcsize < 10:
+					utcsize = 10
+					value = strconv.Itoa(10)
+				case utcsize > 200:
+					utcsize = 200
+					value = strconv.Itoa(200)
+				}
+				usz.SetText(strconv.Itoa(utcsize))
+				a.Preferences().SetInt("utcsize.default", utcsize)
+			}
+		}
+		// Create buttons for increase and decrease
+		uincrease := widget.NewButton("▲", func() {
+			value, _ := strconv.Atoi(usz.Text)
+			if value < 200 {
+				usz.SetText(fmt.Sprintf("%d", value+1))
+				utcsize = value + 1
+				a.Preferences().SetInt("utcsize.default", utcsize)
+			} else {
+				playBeep("ding")
+			}
+		})
+		udecrease := widget.NewButton("▼", func() {
+			value, _ := strconv.Atoi(usz.Text)
+			if value > 10 {
+				usz.SetText(fmt.Sprintf("%d", value-1))
+				utcsize = value - 1
+				a.Preferences().SetInt("utcsize.default", utcsize)
+			} else {
+				playBeep("ding")
+			}
+		})
+
+		/*
+			timefont
+			datefont
+			utcfont
+		*/
+
+		reset := widget.NewButton("Reset defaults", func() {
+			if debug == 1 {
+				log.Println("preferences reset to defaults")
+			}
+			writeDefaultSettings(a)
+			showsec.SetChecked(true)
+			showtz.SetChecked(true)
+			showdt.SetChecked(true)
+			showut.SetChecked(true)
+			showhr1224.SetSelected("12")
+			chime.SetChecked(true)
+			hourchimesound = "cuckoo.mp3"
+			chimesound.Selected = hourchimesound
+			startatboot.SetChecked(false)
+			showsec.Refresh()
+			showtz.Refresh()
+			showut.Refresh()
+			showhr1224.Refresh()
+			startatboot.Refresh()
+			chime.Refresh()
+			chimesound.Refresh()
+			timesize = 48
+			datesize = 24
+			utcsize = 18
+			tsz.SetText(strconv.Itoa(timesize))
+			dsz.SetText(strconv.Itoa(datesize))
+			usz.SetText(strconv.Itoa(utcsize))
+		})
+		reset.Importance = widget.SuccessImportance // green
+		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
+		close := widget.NewButton("Close settings", func() {
+			settingsc.Close()
+			settingsc = nil
+		})
+		close.Importance = widget.WarningImportance // orange
+		buttonRow := container.NewCenter(container.NewHBox(container.NewCenter(reset), container.NewCenter(close)))
+
+		if showseconds == 1 {
+			showsec.SetChecked(true)
+		} else {
+			showsec.SetChecked(false)
+		}
+		if showtimezone == 1 {
+			showtz.SetChecked(true)
+		} else {
+			showtz.SetChecked(false)
+		}
+		if showdate == 1 {
+			showdt.SetChecked(true)
+		} else {
+			showdt.SetChecked(false)
+		}
+		if showutc == 1 {
+			showut.SetChecked(true)
+		} else {
+			showut.SetChecked(false)
+		}
+		switch showhr12 {
+		case 1:
+			showhr1224.SetSelected("12")
+		case 0:
+			showhr1224.SetSelected("24")
+		}
+		if hourchime == 1 {
+			chime.SetChecked(true)
+		} else {
+			chime.SetChecked(false)
+		}
+		chimesound.Selected = hourchimesound
+		if startclock == 1 {
+			startatboot.SetChecked(true)
+		} else {
+			startatboot.SetChecked(false)
+		}
+
+		/*
+			background.Selected = timerbg
+		*/
+		setform := widget.NewForm(
+			widget.NewFormItem("Show Seconds", showsec),
+			widget.NewFormItem("Show Timezone", showtz),
+			widget.NewFormItem("Show Date", showdt),
+			widget.NewFormItem("Show UTC", showut),
+			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
+			widget.NewFormItem("Auto Start With Timer", startatboot),
+			widget.NewFormItem("Hourly Chime", chime),
+			widget.NewFormItem("Hourly Chime Sound", chimesound),
+		)
+
+		tcbutton := widget.NewButton("Time Color", func() {
+			tcolor := colorPicker(settingsc, "time", a)
+			if debug == 1 {
+				fmt.Println("tcolor:", tcolor)
+			}
+		})
+		bgbutton := widget.NewButton("Background Color", func() {
+			bcolor := colorPicker(settingsc, "background", a)
+			if debug == 1 {
+				fmt.Println("bcolor:", bcolor)
+			}
+		})
+		twidget := container.NewHBox(
+			tdecrease,
+			tsz,
+			tincrease,
+			tcbutton,
+			bgbutton)
+		dcbutton := widget.NewButton("Date Color", func() {
+			dcolor := colorPicker(settingsc, "date", a)
+			if debug == 1 {
+				fmt.Println("dcolor:", dcolor)
+			}
+		})
+		dwidget := container.NewHBox(
+			ddecrease,
+			dsz,
+			dincrease,
+			dcbutton)
+		ucbutton := widget.NewButton("UTC Time Color", func() {
+			ucolor := colorPicker(settingsc, "utc", a)
+			if debug == 1 {
+				fmt.Println("ucolor:", ucolor)
+			}
+		})
+		uwidget := container.NewHBox(
+			udecrease,
+			usz,
+			uincrease,
+			ucbutton)
+
+		display := widget.NewForm(
+			widget.NewFormItem("Time size", twidget),
+			widget.NewFormItem("Date size", dwidget),
+			widget.NewFormItem("UTC size", uwidget),
+		)
+
+		settingsc.Resize(fyne.NewSize(500, 300))
+		// settingsc.CenterOnScreen() // run centered on primary (laptop) display
+		settingsc.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
+		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
+		settingsc.SetCloseIntercept(func() {
+			settingsc.Close()
+			settingsc = nil
+		})
+		settingsc.Show()
+	}
+}
+
+func colorPicker(parent fyne.Window, s string, a fyne.App) color.Color {
+	// dialog.ShowCustom("Pick a Color", "Close", colorPicker, parent)
+	picker := dialog.NewColorPicker("Select a color", "Choose your favorite color", func(c color.Color) {
+		colorSelected(c, parent, s, a)
+		mycolor = c
+	}, parent)
+	picker.Advanced = true
+	picker.Show()
+	return mycolor
+}
+
+func colorSelected(c color.Color, w fyne.Window, s string, a fyne.App) {
+	rectangle := canvas.NewRectangle(c)
+	size := 2 * theme.IconInlineSize()
+	rectangle.SetMinSize(fyne.NewSize(size, size*1.8))
+	mycolor := ColorToString(c)
+	cmsg := "Color selected: " + mycolor
+	dialog.ShowCustom(cmsg, "Ok", rectangle, w)
+	switch s {
+	case "time":
+		a.Preferences().SetString("timecolor.default", mycolor)
+	case "background":
+		a.Preferences().SetString("bgcolor.default", mycolor)
+	case "date":
+		a.Preferences().SetString("datecolor.default", mycolor)
+	case "utc":
+		a.Preferences().SetString("utccolor.default", mycolor)
+	}
+}
+
+// ColorToString converts a color.Color to a string in "rgba(r,g,b,a)" format.
+func ColorToString(c color.Color) string {
+	r, g, b, a := c.RGBA()
+	// RGBA() method returns 16 bit values, need to divide by 257 to get 8 bit values
+	// return fmt.Sprintf("rgba(%d,%d,%d,%.2f)", r/257, g/257, b/257, float64(a)/65535)
+	// return fmt.Sprintf("rgba(%d,%d,%d,%d)", r/257, g/257, b/257, a/257)
+	return fmt.Sprintf("%d,%d,%d,%d", r/257, g/257, b/257, a/257)
 }
 
 func showFilePicker(w fyne.Window) {
