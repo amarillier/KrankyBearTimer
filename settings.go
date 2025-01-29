@@ -344,7 +344,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetString("oneminsound.default", "hero.mp3")
 	a.Preferences().SetString("halfminsound.default", "sosumi.mp3")
 	// clock default settings
-	a.Preferences().SetInt("showseconds.default", 1)
+	a.Preferences().SetInt("showseconds.default", 0)
 	a.Preferences().SetInt("showtimezone.default", 1)
 	a.Preferences().SetInt("showutc.default", 1)
 	a.Preferences().SetInt("showdate.default", 1)
@@ -361,7 +361,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("datesize.default", 24)
 	a.Preferences().SetInt("utcsize.default", 18)
 	a.Preferences().SetString("hourchimesound.default", "cuckoo.mp3")
-	a.Preferences().SetInt("startclock.default", startclock)
+	a.Preferences().SetInt("startclock.default", 1)
 	// example prefs:
 	//{"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3"}
 }
@@ -406,7 +406,8 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	} else {
 		settingsc = a.NewWindow(timerName + ": Clock Settings")
 		settingsText := `All updates are applied / saved immediately.
-	Note: settings do not currently auto refresh, restart is required.`
+	Note: settings do not currently auto refresh, restart is required.
+	Displaying seconds can be much more CPU intensive than not!`
 		setText := widget.NewLabel(settingsText)
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 
@@ -690,7 +691,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				log.Println("preferences reset to defaults")
 			}
 			writeDefaultSettings(a)
-			showsec.SetChecked(true)
+			showsec.SetChecked(false)
 			showtz.SetChecked(true)
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
@@ -698,7 +699,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			chime.SetChecked(true)
 			hourchimesound = "cuckoo.mp3"
 			chimesound.Selected = hourchimesound
-			startatboot.SetChecked(false)
+			startatboot.SetChecked(true)
 			showsec.Refresh()
 			showtz.Refresh()
 			showut.Refresh()

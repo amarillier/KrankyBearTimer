@@ -124,7 +124,6 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			}
 		}
 		content := container.NewStack(background, vbox)
-		// content := container.NewStack(background, container.NewVBox(nowtime, nowdate, utctime))
 
 		/**/
 		updateClock := func() {
@@ -138,6 +137,7 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 					}
 				}
 			}
+
 			nowtime.Text = now.Format(timeFormat)
 			nowtime.Refresh()
 			nowdate.Refresh()
@@ -151,7 +151,14 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		updateClock()
 		go func() {
 			for range time.Tick(time.Second) {
-				updateClock()
+				// updating frequently is something of a resource hog (CPU)
+				// check here if seconds are displayed, update
+				// if seconds are not displayed, check for seconds == 0
+				// at the minute change, and only update the clock then
+				now = time.Now()
+				if showseconds == 1 || now.Second() == 0 {
+					updateClock()
+				}
 			}
 		}()
 		/**/
@@ -171,14 +178,8 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
 
 // To-do:
-// allow background color choice
-// allow clock color choice and text size
-// allow date color choice and text size
-// allow display / hide UTC time
-// allow 12 / 24 hour clock display format
-// allow display seconds or not
-// allow displaying timezone or not
 
+// a few notes, format specific
 // clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
 // clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
 

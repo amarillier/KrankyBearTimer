@@ -28,7 +28,7 @@ import (
 
 const (
 	timerName      = "Tanium Timer"
-	timerVersion   = "0.7" // see FyneApp.toml
+	timerVersion   = "0.7.1" // see FyneApp.toml
 	timerCopyright = "(c) Tanium, 2024, 2025"
 	timerAuthor    = "Allan Marillier"
 )
@@ -281,10 +281,12 @@ It also includes an optional desktop clock that can be set to auto start when th
 - A timer that has been hidden behind another window or minimized will be
 	brought to the front / focused at 60 seconds, and at timer completion
 
-- The separate clock window allows optional display of seconds, date, UTC time,
-  with customizable background and text colors available, configured through 
-  a separate settings menu item
+- The separate clock window allows optional display of seconds, date, UTC time, with customizable background and 
+  text colors available, configured through a separate settings menu item
 - autostart clock when starting the timer is also available, in clock settings
+- Note: Displaying seconds can be quite resource intensive with clock display updates every second. 
+  The app is substantially less CPU intenive with seconds not displayed allowing the app to
+  refresh the display every minute rather than every second
 
 - See Settings Info tab for more detail on settings / preferences
 
@@ -636,8 +638,6 @@ func updateTime(out *widget.RichText, time int) {
 To-do:
 - Allow optional always on top, save in prefs - may not be possible on Mac
 https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
-- Prevent clock opening if already open
-- Add clock settings to settings window
 - Known problems - needs OpenGL drivers on some Windows
 -
 */
