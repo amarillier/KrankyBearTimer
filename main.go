@@ -285,7 +285,7 @@ It also includes an optional desktop clock that can be set to auto start when th
   text colors available, configured through a separate settings menu item
 - autostart clock when starting the timer is also available, in clock settings
 - Note: Displaying seconds can be quite resource intensive with clock display updates every second. 
-  The app is substantially less CPU intenive with seconds not displayed allowing the app to
+  The app can be substantially less CPU intensive when seconds are not displayed, allowing the app to
   refresh the display every minute rather than every second
 
 - See Settings Info tab for more detail on settings / preferences
@@ -324,6 +324,7 @@ It also includes an optional desktop clock that can be set to auto start when th
 - Settings changes to background and timer default times are saved immediately.
 	- Times are effective immediately, but timer button times and background
 		do not currently refresh to new settings
+- Font type settings in preferences are currently ignored, the app uses system theme defaults. (Future planned update)
 - OpenGL drivers are required for some Windows systems, not a bug but a
 	specific library requirement that might not allow some to use this app
 	`
@@ -356,13 +357,13 @@ Settings contains defaults as below, which can be modified, and also reset to de
 "datesize.default":24,"endsound.default":"baseball.mp3",
 "halfminsound.default":"sosumi.mp3","hourchime.default":1,
 "hourchimesound.default":"cuckoo.mp3","lunch.default":3600,
-"notify.default":1,"oneminsound.default":"hero.mp3",
-"showdate.default":1,"showhr12.default":1,"showseconds.default":1,
-"showtimezone.default":1,"showutc.default":1,"sound.default":1,
-"startclock.default":1,"starttimer.default":0,
-"timecolor.default":"255,123,31,255","timefont.default":"arial",
-"timesize.default":48,"utccolor.default":"238,229,58,255",
-"utcfont.default":"arial","utcsize.default":18}
+"notify.default":1,"oneminsound.default":"hero.mp3","showdate.default":1,
+"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,
+"showutc.default":1,"sound.default":1,"startclock.default":1,
+"starttimer.default":0,"timecolor.default":"255,123,31,255",
+"timefont.default":"arial","timesize.default":48,
+"utccolor.default":"238,229,58,255","utcfont.default":"arial",
+"utcsize.default":18}
 
 Tanium Timer looks for directories named Resources/Images and Resources/Sounds,
 containing images and sounds.
