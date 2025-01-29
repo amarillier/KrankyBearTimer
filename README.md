@@ -22,8 +22,6 @@ Basic list - see help in the app for more detail
 https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
 
 - Known problems - needs OpenGL drivers on some Windows
-- Improve performance - this is a bit CPU / memory intensive, likely mostly due to displaying seconds and updating the timer display every second
-  - if done every minute instead and seconds not show, CPU use should reduce a decent bit
 - Possibly add one or more clock alarms - one time, recurring etc.
 
 # Info for compiling / modifying
