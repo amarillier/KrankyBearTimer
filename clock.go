@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"strconv"
 	"strings"
@@ -82,7 +83,13 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			timeFormat += ` (MST)`
 		}
 
-		utcFormat := `(UTC 3:04 PM Z07)`
+		// Get the local time zone and offset
+		_, offset := now.Zone()
+		offsetHours := offset / 3600
+		offsetMinutes := (offset % 3600) / 60
+		offsetString := fmt.Sprintf("local is  %+02d:%02d", offsetHours, offsetMinutes)
+		// utcFormat := `(UTC 3:04 PM Z07)`
+		utcFormat := `UTC 3:04 PM  (` + offsetString + `)`
 		dateFormat := ` Monday, January 2, 2006 `
 
 		// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
@@ -143,7 +150,8 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			nowdate.Refresh()
 			nowdate.Text = now.Format(dateFormat)
 			if showutc == 1 {
-				utctime.Text = now.Format(utcFormat)
+				utc := now.UTC()
+				utctime.Text = utc.Format(utcFormat)
 				utctime.Refresh()
 			}
 		}
