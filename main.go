@@ -220,8 +220,8 @@ func main() {
 			aboutText := timerName + " v " + timerVersion
 			aboutText += "\n" + timerCopyright
 			aboutText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
-			aboutText += "No obligation, it's rewarding to hear if you use this app."
-			aboutText += "And looking about too much might expose an easter egg!"
+			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
+			aboutText += "\nAnd looking about too much might expose an easter egg!"
 
 			if abt == nil { // || !abt.Content().Visible() {
 				abt = a.NewWindow(timerName + ": About")
