@@ -300,6 +300,7 @@ It also includes an optional desktop clock that can be set to auto start when th
 
 				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 	- Plan for user selectable hour / minute time to mute / unmute
+- Allow settings set/save window locations to open timer/clock
 - Possibly add clock settings tab to timer settings rather than have separate menu items
 - Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
