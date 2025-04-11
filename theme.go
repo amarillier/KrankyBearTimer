@@ -1,16 +1,14 @@
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcn.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcbe.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcc.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer2.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumIcon.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrayIcon.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainBlue.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainStone.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainAlmond.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024.svg
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024a.svg
-///go:generate fyne bundle -o bundled.go -a Resources/Images/redSettingsGear.svg
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer2.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainBlue.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainStone.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainAlmond.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumGrayTeach.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024a.png
 
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/boing.mp3
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Basso.mp3

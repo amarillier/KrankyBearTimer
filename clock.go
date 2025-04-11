@@ -12,7 +12,7 @@ import (
 	"fyne.io/fyne/v2/container"
 )
 
-var c fyne.Window
+// var c fyne.Window
 
 func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 	if c != nil { // &&  !c.Content().Visible() {
@@ -63,6 +63,7 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		ua = uint8(col)
 
 		c = a.NewWindow("Tanium Clock")
+		c.SetIcon(resourceTaniumTimerPng)
 
 		now := time.Now()
 		// timeFormat := `15:04:05`
@@ -87,9 +88,9 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		_, offset := now.Zone()
 		offsetHours := offset / 3600
 		offsetMinutes := (offset % 3600) / 60
-		offsetString := fmt.Sprintf("local is  %+02d:%02d", offsetHours, offsetMinutes)
+		offsetString := fmt.Sprintf(" (local is  %+02d:%02d)", offsetHours, offsetMinutes) // ZZZ
 		// utcFormat := `(UTC 3:04 PM Z07)`
-		utcFormat := `UTC 3:04 PM  (` + offsetString + `)`
+		utcFormat := `UTC 3:04 PM` //   (` + offsetString + `)`  // ZZZ
 		dateFormat := ` Monday, January 2, 2006 `
 
 		// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
@@ -151,7 +152,7 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			nowdate.Text = now.Format(dateFormat)
 			if showutc == 1 {
 				utc := now.UTC()
-				utctime.Text = utc.Format(utcFormat)
+				utctime.Text = utc.Format(utcFormat) + offsetString
 				utctime.Refresh()
 			}
 		}
@@ -188,6 +189,7 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 // To-do:
 
 // a few notes, format specific
+// timeFormat := `3:04:05 PM (MST)`
 // clock.SetText(now.Format("Mon Jan 2 15:04:05 2006"))
 // clock.SetText(now.Format("15:04:05`nMonday, January 2, 2006"))
 

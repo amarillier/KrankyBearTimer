@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -24,11 +23,9 @@ import (
 	"fyne.io/systray"
 )
 
-// import "C" - was to be used for stay on top, processes, but not now
-
 const (
 	timerName      = "Tanium Timer"
-	timerVersion   = "0.7.1" // see FyneApp.toml
+	timerVersion   = "0.8.3" // see FyneApp.toml
 	timerCopyright = "(c) Tanium, 2024, 2025"
 	timerAuthor    = "Allan Marillier"
 )
@@ -38,10 +35,18 @@ var bg fyne.Canvas
 var remain int
 var notify int
 var sound int
+var traytimer int
 
 var adhocTime int
+var adhocbtn *widget.Button
+var adhocmnu *fyne.MenuItem
 var biobreakTime int
 var lunchTime int
+var endTime time.Time
+var customTime time.Time
+var endTimeSec int
+var menu *fyne.Menu
+var c fyne.Window // clock window
 
 var imgDir string
 var timerbg string
@@ -81,8 +86,6 @@ var debug int = 0
 var abt fyne.Window
 var hlp fyne.Window
 
-// var clock fyne.Window
-
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
 // ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
@@ -112,6 +115,7 @@ func main() {
 	a := app.NewWithID("com.tanium.TaniumTimer")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	w := a.NewWindow(timerName)
+	w.SetIcon(resourceTaniumTimerPng)
 	w.SetPadded(false)
 	w.SetCloseIntercept(func() {
 		a.Quit() // force quit, normal when somebody hits "x" to close
@@ -133,6 +137,7 @@ func main() {
 	biobreakTime = a.Preferences().IntWithFallback("biobreak.default", 10*60)
 	notify = a.Preferences().IntWithFallback("notify.default", 1)
 	sound = a.Preferences().IntWithFallback("sound.default", 1)
+	traytimer = a.Preferences().IntWithFallback("traytimer.default", 0)
 	timerbg = a.Preferences().StringWithFallback("background.default", "blue")
 	endsnd = a.Preferences().StringWithFallback("endsound.default", "baseball.mp3")
 	oneminsnd = a.Preferences().StringWithFallback("oneminsound.default", "hero.mp3")
@@ -157,6 +162,8 @@ func main() {
 	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
 	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
+	// "Mon Jan 2 15:04:05 MST 2006"
+	endTime, err = time.Parse("15:04", "00:00") // set default midnight
 
 	if len(os.Args) >= 2 {
 		log.Println("arg count:", len(os.Args))
@@ -189,11 +196,8 @@ func main() {
 		}
 	}
 
-	timer := widget.NewRichText()
-	updateTime(timer, adhocTime)
-
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceTaniumIconSvg)
+		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 		if startclock == 1 {
 			clock(a) // , w, bg)
 		}
@@ -210,8 +214,13 @@ func main() {
 		biobreak := fyne.NewMenuItem("Bio Break ("+strconv.Itoa(biobreakTime/60)+")", func() {
 			startTimer(biobreakTime, "Bio Break", w.Canvas(), w)
 		})
-		adhoc := fyne.NewMenuItem("Ad Hoc", func() {
+		adhocmnu = fyne.NewMenuItem("Ad Hoc ("+strconv.Itoa(adhocTime/60)+")", func() {
 			startTimer(adhocTime, "Ad Hoc Timer", w.Canvas(), w)
+		})
+		selected := fyne.NewMenuItem("Selected End Time", func() {
+			// now := time.Now()
+			// endTime = time.Date(now.Year(), now.Month(), now.Day(), customTime.Hour(), customTime.Minute(), 0, 0, now.Location())
+			startTimer(endTimeSec, "Selected End Time", w.Canvas(), w)
 		})
 		stop := fyne.NewMenuItem("Stop", func() {
 			remain = -1 // don't notify when the user stops it
@@ -223,8 +232,9 @@ func main() {
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
 			aboutText += "\nAnd looking about too much might expose an easter egg!"
 
-			if abt == nil { // || !abt.Content().Visible() {
+			if abt == nil {
 				abt = a.NewWindow(timerName + ": About")
+				abt.SetIcon(resourceTaniumTimerPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetCloseIntercept(func() {
@@ -234,36 +244,14 @@ func main() {
 				abt.CenterOnScreen() // run centered on primary (laptop) display
 				abt.Show()
 			} else {
-				// abt.RequestFocus()
-				certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
-				rand.Seed(time.Now().UnixNano())
-				randomIndex := rand.Intn(len(certs))
-				egg := a.NewWindow(timerName + ": easter egg")
-				eggimage := canvas.NewImageFromResource(certs[randomIndex])
-				// eggimage := canvas.NewImageFromResource(resourceTCNSvg)
-				// eggimage := canvas.NewImageFromResource(resourceTcnPng)
-
-				eggimage.FillMode = canvas.ImageFillOriginal
-				text := "Whoo-hoo! You found the Easter egg!\n"
-				text += "\n" + dadjoke()
-				eggtext := widget.NewLabel(text)
-				content := container.NewVBox(eggimage, eggtext)
-				egg.SetContent(content)
-				egg.CenterOnScreen() // run centered on primary (laptop) display
-				for j := 0; j <= 2; j++ {
-					playBeep("down")
-					egg.Show()
-					time.Sleep(time.Second / 3)
-					egg.Hide()
-					time.Sleep(time.Second / 3)
-				}
-				egg.Show()
 				abt.RequestFocus()
+				easterEgg(a, w)
 			}
 		})
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
 				hlp = a.NewWindow(timerName + ": Help")
+				hlp.SetIcon(resourceTaniumTimerPng)
 				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
 It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
 
@@ -272,12 +260,17 @@ It also includes an optional desktop clock that can be set to auto start when th
 - Bio break timer default is 10 minutes
 - Lunch break timer default is 60 minutes
 - Each of these break times can be modified using Settings, set in minutes
+- A custom time can also be set using the 'Select End Time' button.
+	- This time will be calculated in minutes from the current time when set, and is reset when the timer ends.
 - Timer text color is green until 2 1/2 minutes remain,
 	- color is orange from 2 1/2 minutes to 30 seconds
 	- color is red from 30 seconds to completion
 - optional setting to enable auto starting at boot
 
 - System tray notifications and sound alerts are both optional, enabled by default
+- System tray can display the countdown timer when enabled and a timer is running.
+	This is disabled by default to save CPU cycles updating it.
+	Minor, but you may see increased CPU usage when this is enabled.
 - Tone / beep alerts are at 60 seconds, at 30 seconds, and at completion
 - Timer window flashes on/off at timer end (in addition to desktop notification & beep)
 - A timer that has been hidden behind another window or minimized will be
@@ -300,16 +293,17 @@ It also includes an optional desktop clock that can be set to auto start when th
 
 				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
 	- Plan for user selectable hour / minute time to mute / unmute
-- Allow settings set/save window locations to open timer/clock
+- Allow settings set/save window locations to open timer/clock,
+	unfortunately not implemented in the fyne library yet
+- Possible multiple time zones for clock, hh:mm only + offset
 - Possibly add clock settings tab to timer settings rather than have separate menu items
 - Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumTimer 
-- Add custom timer button, allow user to type no. minutes
 - Add lab timer button
 - Add more selectable timer buttons - list? Readable from prefs
 - Timer show progress bar? Cute but not really necessary, countdown is very clear
-- Center + / - below ad hoc button in canvas
+- Center + / - below ad hoc button in canvas?
 - Reset timer name in window title to 'Tanium Timer' after user stop or timer end
 - Test if already running bring to front and exit, optional setting to allow multiple timers
 - Add pause/resume buttons to pause and resume a running timer
@@ -413,27 +407,57 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 				hlp.Show()
 			} else {
 				hlp.RequestFocus()
+				easterEgg(a, w)
 			}
 		})
-		settings := fyne.NewMenuItem("Settings (Timer)", func() {
+		settingsTimer := fyne.NewMenuItem("Settings (Timer)", func() {
 			makeSettingsTimer(a, w, bg)
 		})
 		settingsClock := fyne.NewMenuItem("Settings (Clock)", func() {
 			makeSettingsClock(a, w, bg)
 		})
-		clock := fyne.NewMenuItem("Clock", func() {
-			clock(a) // , w, bg)
+		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
+			makeSettingsTheme(a, w, bg)
 		})
-		menu := fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhoc, stop, fyne.NewMenuItemSeparator(), clock, about, help, settings, settingsClock)
+		clock := fyne.NewMenuItem("Clock", func() {
+			if c == nil {
+				clock(a) // , w, bg)
+			} else {
+				c.RequestFocus()
+			}
+		})
+		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, help, settingsTimer, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
+		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 		systray.SetTooltip(timerName)
-		// systray.SetTitle(timerName)
+
+		// Menu items
+		// compile / run with syntax below to force Mac to do menus like Windows
+		// otherwise menus will be at the top of the display
+		// https://github.com/fyne-io/fyne/issues/3988
+		// go build -tags no_native_menus .
+		// go run -tags no_native_menus .
+		quit := fyne.NewMenuItem("Quit", func() {
+			a.Quit()
+		})
+		// NOTE: clock does not work here, why? causes app "panic: send on closed channel"
+		// newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
+		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
+		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
+		newMenuHelp := fyne.NewMenu("Help", about, help)
+		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
+		// New main menu
+		cmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
+		// setup main menu
+		c.SetMainMenu(cmenu)
+		// cmenu.Refresh()
 
 		running.AddListener(binding.NewDataListener(func() {
 			busy, _ := running.Get()
 			lunch.Disabled = busy
 			biobreak.Disabled = busy
-			adhoc.Disabled = busy
+			adhocmnu.Disabled = busy
+			selected.Disabled = busy
 			stop.Disabled = !busy
 			menu.Refresh()
 		}))
@@ -446,19 +470,33 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 			return
 		}
 		adhocTime -= 60 * 5
-		updateTime(timer, adhocTime)
+		adhocbtn.SetText("Ad Hoc (" + strconv.Itoa(adhocTime/60) + ")")
+		adhocmnu.Label = "Ad Hoc (" + strconv.Itoa(adhocTime/60) + ")"
+		menu.Refresh()
 		a.Preferences().SetInt("adhoc.default", adhocTime)
 	})
 	less.Importance = widget.WarningImportance // orange
 	more := widget.NewButtonWithIcon("", theme.ContentAddIcon(), func() {
 		adhocTime += 60 * 5
-		updateTime(timer, adhocTime)
+		adhocbtn.SetText("Ad Hoc (" + strconv.Itoa(adhocTime/60) + ")")
+		adhocmnu.Label = "Ad Hoc (" + strconv.Itoa(adhocTime/60) + ")"
+		menu.Refresh()
 		a.Preferences().SetInt("adhoc.default", adhocTime)
 	})
 	more.Importance = widget.WarningImportance // orange
+	endset := widget.NewButtonWithIcon("", theme.RadioButtonIcon(), func() {
+		setEndTime(a, w, bg, "set")
+		now := time.Now()
+		endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
+		// a.Preferences().SetInt("endTime.default", endTime)
+	})
+	endset.Importance = widget.WarningImportance // orange
 
-	timeRow := container.NewCenter(padTime(timer))
-	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more))
+	quit := widget.NewButton("Quit", func() {
+		a.Quit()
+	})
+	quit.Importance = widget.HighImportance // red
+	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset, quit)
 
 	lunch := widget.NewButton("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
 		startTimer(lunchTime, "Lunch", w.Canvas(), w)
@@ -468,35 +506,48 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 		startTimer(biobreakTime, "Bio Break", w.Canvas(), w)
 	})
 	biobreak.Importance = widget.MediumImportance // white
-	adhoc := widget.NewButton("Ad Hoc", func() {
+	adhocbtn = widget.NewButton("Ad Hoc ("+strconv.Itoa(adhocTime/60)+")", func() {
 		startTimer(adhocTime, "Ad Hoc", w.Canvas(), w)
 	})
-	adhoc.Importance = widget.WarningImportance // orange
-	quit := widget.NewButton("Quit", func() {
-		a.Quit()
+	adhocbtn.Importance = widget.WarningImportance // orange
+	endtime := widget.NewButton("Selected End Time", func() {
+		now := time.Now()
+		endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
+		if endTimeSec <= 60 {
+			playBeep("ding")
+			setEndTime(a, w, bg, "run")
+			now := time.Now()
+			endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
+		} else {
+			now := time.Now()
+			endTime = time.Date(now.Year(), now.Month(), now.Day(), customTime.Hour(), customTime.Minute(), 0, 0, now.Location())
+			startTimer(endTimeSec, "Selected End Time", w.Canvas(), w)
+		}
 	})
-	quit.Importance = widget.HighImportance // red
-	content := container.NewCenter(container.NewVBox(timeRow,
-		container.NewGridWithColumns(2, biobreak, lunch, adhoc, quit), lessmoreRow))
+	endtime.Importance = widget.WarningImportance // orange
 
-	bg := canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+	content := container.NewCenter(container.NewVBox(container.NewGridWithColumns(2, biobreak, lunch, adhocbtn, endtime), lessmoreRow))
+
+	bg := canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 	switch timerbg {
 	case "taniumtimer2":
-		bg = canvas.NewImageFromResource(resourceTaniumTimer2Svg)
+		bg = canvas.NewImageFromResource(resourceTaniumTimer2Png)
 	case "blue":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 	case "stone":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainStoneSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumTrainStonePng)
 	case "almond":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondPng)
+	case "taniumgrayteach":
+		bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
 	case "taniumtimer":
-		bg = canvas.NewImageFromResource(resourceTaniumTimerSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumTimerPng)
 	case "converge24":
-		bg = canvas.NewImageFromResource(resourceTaniumConverge2024Svg)
+		bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
 	case "converge24a":
-		bg = canvas.NewImageFromResource(resourceTaniumConverge2024aSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumConverge2024aPng)
 	default:
-		bg = canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+		bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 	}
 	w.Resize(fyne.NewSize(content.MinSize().Width*1.8, content.MinSize().Height*1.8))
 	bg.FillMode = canvas.ImageFillContain
@@ -513,6 +564,10 @@ func formatTimer(time int) string {
 	return fmt.Sprintf("%02d:%02d", mins, secs)
 }
 
+func centerTime(t *widget.RichText) fyne.CanvasObject {
+	return container.New(layout.NewCenterLayout(), t)
+}
+
 func padTime(t *widget.RichText) fyne.CanvasObject {
 	pad := theme.Padding()
 	return container.New(layout.NewCustomPaddedLayout(-3.5*pad, -2.5*pad, pad, pad), t)
@@ -527,7 +582,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	w.SetTitle(timerName + ": " + name)
 	running.Set(true)
 	if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceTaniumIconSvg)
+		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)
 	}
@@ -536,14 +591,18 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 
 	stop := widget.NewButton("Stop", nil)
 	overlay := container.NewPadded(container.NewVBox(
-		padTime(ticker),
+		// padTime(ticker),
+		centerTime(ticker),
 		stop))
 	p := widget.NewModalPopUp(overlay, c)
+	//p.Resize(fyne.NewSize(300, 100))
+	overlay.Resize(fyne.NewSize(100, 100))
+	p.Resize(fyne.NewSize(w.Canvas().Size().Width*0.5, w.Canvas().Size().Height*0.5))
 	stop.OnTapped = func() {
 		remain = -1 // don't notify
 		w.SetTitle(timerName)
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceTaniumIconSvg)
+			desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 			systray.SetTooltip(timerName)
 			systray.SetTitle("")
 			stop.Disable()
@@ -553,8 +612,11 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	go func() {
 		for remain > 0 {
 			updateTime(ticker, remain)
-			if _, ok := fyne.CurrentApp().(desktop.App); ok {
-				systray.SetTitle(formatTimer(remain))
+			// system tray tooltip is not supported on Windows!
+			if traytimer == 1 && runtime.GOOS != "windows" {
+				if _, ok := fyne.CurrentApp().(desktop.App); ok {
+					systray.SetTitle(formatTimer(remain))
+				}
 			}
 			if remain == 60 {
 				w.Show() // in case it has been hidden
@@ -622,7 +684,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			}
 		}
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceTaniumIconSvg)
+			desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 			systray.SetTooltip(timerName)
 			systray.SetTitle("")
 		}
@@ -634,6 +696,97 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 func updateTime(out *widget.RichText, time int) {
 	out.ParseMarkdown("# " + formatTimer(time))
 	themeTimer(out, time)
+}
+
+func setEndTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string) { // time.Time {
+	var selectedTime time.Time
+	var current string
+
+	e := a.NewWindow("Select End Time")
+	// Set window size to fit the input prompt
+	e.Resize(fyne.NewSize(300, 150))
+	now := time.Now()
+
+	// check to see if predefined end / custom time is still
+	// in the future, if not, set to the current time. If it is future,
+	// default to that future time
+	if customTime.Before(now) {
+		current = fmt.Sprintf("%02d:%02d", now.Hour(), now.Minute()+5)
+	} else {
+		current = fmt.Sprintf("%02d:%02d", customTime.Hour(), customTime.Minute())
+	}
+
+	// Create a time entry widget
+	timeEntry := widget.NewEntry()
+	timeEntry.SetPlaceHolder(current)
+	timeEntry.SetText(current)
+
+	// Create a label to display messages
+	messageLabel := widget.NewLabel("")
+
+	// Create a button to submit the time
+	submitButton := widget.NewButton("Set", func() {
+		enteredTime := timeEntry.Text
+		if isValidCustomTime(enteredTime, "custom") {
+			selectedTime, _ = time.Parse("15:04", enteredTime)
+			customTime = time.Date(now.Year(), now.Month(), now.Day(), selectedTime.Hour(), selectedTime.Minute(), 0, 0, now.Location())
+			if caller == "set" {
+				messageLabel.SetText("Custom time: " + customTime.Format("Mon Jan 2 15:04:05 MST 2006"))
+				time.Sleep(1 * time.Second)
+			} else {
+				messageLabel.SetText("Custom time: " + customTime.Format("Mon Jan 2 15:04:05 MST 2006"+"\n\nTime has been set\nPress the Selected End Time button again\nwhen ready to run the timer"))
+				time.Sleep(4 * time.Second)
+			}
+			e.Close()
+		} else {
+			messageLabel.SetText("Enter a valid future time (HH:MM) at least 5 minutes from now")
+		}
+	})
+
+	// Arrange the widgets in a vertical box
+	content := container.NewVBox(
+		timeEntry,
+		submitButton,
+		messageLabel,
+	)
+
+	e.SetContent(content)
+	e.CenterOnScreen() // run centered on primary (laptop) display
+	e.Show()
+	endTime = customTime
+}
+
+// isValidCustomTime checks if the entered time is valid in 24-hour format
+// and / or is in the future compared to the current time.
+func isValidCustomTime(t string, test string) bool {
+	parts := strings.Split(t, ":")
+	if len(parts) != 2 {
+		return false
+	}
+
+	hours, err1 := strconv.Atoi(parts[0])
+	minutes, err2 := strconv.Atoi(parts[1])
+
+	if err1 != nil || err2 != nil {
+		return false
+	}
+
+	if test == "custom" {
+		now := time.Now()
+		// allow 5 minute buffer, force selected time at least 5 minutes after current time
+		customTime = time.Date(now.Year(), now.Month(), now.Day(), hours, minutes-5, 0, 0, now.Location())
+		if customTime.After(now) {
+			return true
+		} else {
+			return false
+		}
+	} else {
+		if hours < 0 || hours > 23 || minutes < 0 || minutes > 59 {
+			return false
+		} else {
+			return true
+		}
+	}
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

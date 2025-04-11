@@ -1,4 +1,5 @@
 .DEFAULT_GOAL := hello
+.ONESHELL:
 
 hello:
 	echo "Hello Tanium!"
@@ -38,31 +39,39 @@ run:
 # Supported cross compile GOOS and GOARCH https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
 build:
 	go build -ldflags="-w -s" -o TaniumTimer .
+	./setIcon.sh TaniumTimer.png TaniumTimer
 .PHONY:build
 
 
 linuxamd64:
- 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/LinuxAMD64/
+	echo "This doesn't work right now on Mac ARM or Win AMD64 - no action"
+ 	# GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/LinuxAMD64/
 .PHONY:linuxamd64
 
 linuxarm64:
- 	GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/LinuxARM64/
+	echo "This doesn't work right now on Mac ARM or Win AMD64 - no action"
+ 	# GOOS=linux GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/LinuxARM64/
 .PHONY:linuxarm64
 
 macamd64:
 	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
+	./setIcon.sh TaniumTimer.png bin/MacOSAMD64/TaniumTimer
 .PHONY:macamd64
 
 macarm64:
 	GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
+	./setIcon.sh TaniumTimer.png bin/MacOSARM64/TaniumTimer
 .PHONY:macarm64
 
 winamd64:
-	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s" -o bin/WinAMD64/
+	go-winres make
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r TaniumTimer.rc" -o bin/WinAMD64/
 .PHONY:winamd64
 
 winarm64:
-	GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s" -o bin/WinARM64/
+	echo "This doesn't work right now on Mac ARM or Win AMD64 - no action"
+	# go-winres make
+	# GOOS=windows GOARCH=arm64 CGO_ENABLED=1 CC="x86_64-w64-mingw32-gcc" go build -ldflags="-w -s -H windowsgui -r TaniumTimer.rc" -o bin/WinARM64/
 .PHONY:winarm64
 
 

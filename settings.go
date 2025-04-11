@@ -13,6 +13,8 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/spiretechnology/go-autostart/v2"
+
+	"fyne.io/fyne/v2/cmd/fyne_settings/settings"
 )
 
 var fileButton *widget.Button
@@ -20,6 +22,7 @@ var selectedFile *widget.Label
 var fileURI fyne.URI
 var settingst fyne.Window
 var settingsc fyne.Window
+var settingsth fyne.Window
 var mycolor color.Color
 
 func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
@@ -28,6 +31,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingst.RequestFocus()
 	} else {
 		settingst = a.NewWindow(timerName + ": Settings")
+		settingst.SetIcon(resourceTaniumTimerPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: timer background and timer buttons on the timer window do not currently auto refresh,
 	restart is required. Time changes do take immediate effect, refresh of background and buttons is planned`
@@ -41,9 +45,10 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			log.Fatal(err)
 		}
 		mp3 := []string{"ding", "down", "up", "updown"}
-		for _, file := range mp3files {
-			mp3 = append(mp3, file)
-		}
+		//for _, file := range mp3files {
+		//	mp3 = append(mp3, file)
+		//}
+		mp3 = append(mp3, mp3files...)
 
 		notifications := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
@@ -69,6 +74,18 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			a.Preferences().SetInt("sound.default", sound)
 		})
+		systraytimer := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("system tray timer set to", value)
+			}
+			switch value {
+			case true:
+				traytimer = 1
+			case false:
+				traytimer = 0
+			}
+			a.Preferences().SetInt("traytimer.default", traytimer)
+		})
 		startatboot := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
 				log.Println("startatboot set to", value)
@@ -90,29 +107,31 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			a.Preferences().SetInt("starttimer.default", starttimer)
 		})
-		background := widget.NewSelect([]string{"almond", "blue", "stone", "converge24", "converge24a", "taniumtimer2"}, func(value string) {
+		background := widget.NewSelect([]string{"almond", "blue", "stone", "taniumgrayteach", "converge24", "converge24a", "taniumtimer2"}, func(value string) {
 			if debug == 1 {
 				log.Println("background set to", value)
 			}
 			timerbg = value
-			bg := canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+			bg := canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 			switch timerbg {
 			case "taniumtimer2":
-				bg = canvas.NewImageFromResource(resourceTaniumTimer2Svg)
+				bg = canvas.NewImageFromResource(resourceTaniumTimer2Png)
 			case "blue":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 			case "stone":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainStoneSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumTrainStonePng)
 			case "almond":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondPng)
+			case "taniumgrayteach":
+				bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
 			case "taniumtimer":
-				bg = canvas.NewImageFromResource(resourceTaniumTimerSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumTimerPng)
 			case "converge24":
-				bg = canvas.NewImageFromResource(resourceTaniumConverge2024Svg)
+				bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
 			case "converge24a":
-				bg = canvas.NewImageFromResource(resourceTaniumConverge2024aSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumConverge2024aPng)
 			default:
-				bg = canvas.NewImageFromResource(resourceTaniumTrainBlueSvg)
+				bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
 			}
 			bg.FillMode = canvas.ImageFillContain
 			bg.Translucency = 0.5 // 0.85
@@ -121,43 +140,40 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			a.Preferences().SetString("background.default", timerbg)
 		})
 
-		//endsound := widget.NewSelect([]string{"updown", "up", "down", "ding", "baseball.mp3", "pinball.mp3", "grandfatherclock.mp3"}, func(value string) {
 		endsound := widget.NewSelect(mp3, func(value string) {
 			if debug == 1 {
 				log.Println("endsound set to", value)
 			}
-			endsnd = value // strings.Replace(value, "builtin ", "", 1)
+			endsnd = value
 			switch endsnd {
 			case "up", "down", "updown", "ding":
-				playBeep(endsnd) // built in sounds
+				playBeep(endsnd)
 			default:
 				playMp3(sndDir + "/" + endsnd)
 			}
 			a.Preferences().SetString("endsound.default", endsnd)
 		})
-		// oneminsound := widget.NewSelect([]string{"updown", "up", "down", "ding", "hero.mp3", "sosumi.mp3", "baseball.mp3", "pinball.mp3", "grandfatherclock.mp3"}, func(value string) {
 		oneminsound := widget.NewSelect(mp3, func(value string) {
 			if debug == 1 {
 				log.Println("oneminsound set to", value)
 			}
-			oneminsnd = value // strings.Replace(value, "builtin ", "", 1)
+			oneminsnd = value
 			switch oneminsnd {
 			case "up", "down", "updown", "ding":
-				playBeep(oneminsnd) // built in sounds
+				playBeep(oneminsnd)
 			default:
 				playMp3(sndDir + "/" + oneminsnd)
 			}
 			a.Preferences().SetString("oneminsound.default", oneminsnd)
 		})
-		// halfminsound := widget.NewSelect([]string{"updown", "up", "down", "ding", "sosumi.mp3", "hero.mp3", "baseball.mp3", "pinball.mp3", "grandfatherclock.mp3"}, func(value string) {
 		halfminsound := widget.NewSelect(mp3, func(value string) {
 			if debug == 1 {
 				log.Println("halfminsound set to", value)
 			}
-			halfminsnd = value // strings.Replace(value, "builtin ", "", 1)
+			halfminsnd = value
 			switch halfminsnd {
 			case "up", "down", "updown", "ding":
-				playBeep(halfminsnd) // built in sounds
+				playBeep(halfminsnd)
 			default:
 				playMp3(sndDir + "/" + halfminsnd)
 			}
@@ -197,6 +213,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			writeDefaultSettings(a)
 			notifications.SetChecked(true)
 			soundalerts.SetChecked(true)
+			systraytimer.SetChecked(false)
 			startatboot.SetChecked(false)
 			timerbg = "blue"
 			endsnd = "baseball.mp3"
@@ -212,6 +229,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 
 			background.Refresh()
 			endsound.Refresh()
+			systraytimer.Refresh()
 			startatboot.Refresh()
 			oneminsound.Refresh()
 			halfminsound.Refresh()
@@ -252,6 +270,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		reset.Importance = widget.SuccessImportance // green
 		close := widget.NewButton("Close settings", func() {
 			settingst.Close()
+			settingst = nil
 		})
 		close.Importance = widget.WarningImportance // orange
 
@@ -267,6 +286,11 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			soundalerts.SetChecked(true)
 		} else {
 			soundalerts.SetChecked(false)
+		}
+		if traytimer == 1 {
+			systraytimer.SetChecked(true)
+		} else {
+			systraytimer.SetChecked(false)
 		}
 		background.Selected = timerbg
 		endsound.Selected = endsnd
@@ -306,6 +330,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		setform := widget.NewForm(
 			widget.NewFormItem("Notifications", notifications),
 			widget.NewFormItem("Sound alerts", soundalerts),
+			widget.NewFormItem("System Tray Timer (N/A for Windows)", systraytimer),
 			widget.NewFormItem("Auto Start at Boot", startatboot),
 			widget.NewFormItem("Background", background),
 			widget.NewFormItem("Timer end sound", endsound),
@@ -320,7 +345,6 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		)
 
 		settingst.Resize(fyne.NewSize(500, 300))
-		// settingst.SetIcon(resourceRedSettingsGearSvg)
 		settingst.CenterOnScreen() // run centered on primary (laptop) display
 		settingst.SetContent(container.NewVBox(setText, setform, todoText))
 		settingst.SetCloseIntercept(func() {
@@ -338,6 +362,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("lunch.default", 3600)
 	a.Preferences().SetInt("notify.default", 1)
 	a.Preferences().SetInt("sound.default", 1)
+	a.Preferences().SetInt("systraytimer.default", 0)
 	a.Preferences().SetInt("starttimer.default", 0)
 	a.Preferences().SetString("background.default", "blue")
 	a.Preferences().SetString("endsound.default", "baseball.mp3")
@@ -373,6 +398,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("lunch.default", lunchTime)
 	a.Preferences().SetInt("notify.default", notify)
 	a.Preferences().SetInt("sound.default", sound)
+	a.Preferences().SetInt("systraytimer.default", traytimer)
 	a.Preferences().SetInt("starttimer.default", starttimer)
 	a.Preferences().SetString("background.default", timerbg)
 	a.Preferences().SetString("endsound.default", endsnd)
@@ -405,6 +431,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingsc.RequestFocus()
 	} else {
 		settingsc = a.NewWindow(timerName + ": Clock Settings")
+		settingsc.SetIcon(resourceTaniumTimerPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: settings do not currently auto refresh, restart is required.
 	Displaying seconds can be much more CPU intensive than not!`
@@ -423,9 +450,10 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			log.Fatal(err)
 		}
 		mp3 := []string{"ding", "down", "up", "updown"}
-		for _, file := range mp3files {
-			mp3 = append(mp3, file)
-		}
+		//for _, file := range mp3files {
+		//	mp3 = append(mp3, file)
+		//}
+		mp3 = append(mp3, mp3files...)
 
 		showsec := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
@@ -823,7 +851,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		)
 
 		settingsc.Resize(fyne.NewSize(500, 300))
-		// settingsc.CenterOnScreen() // run centered on primary (laptop) display
+		settingsc.CenterOnScreen() // run centered on primary (laptop) display
 		settingsc.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
 		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
 		settingsc.SetCloseIntercept(func() {
@@ -844,6 +872,65 @@ func colorPicker(parent fyne.Window, s string, a fyne.App) color.Color {
 	picker.Show()
 	return mycolor
 }
+
+func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
+	// allow modifying the fyne theme
+	// this is dependent on fyne_settings in ~/go/pkg/mod/fyne.io/fyne/v2/cmd/fyne_settings/settings
+	// but here I use a customized version to add a button 'Apply & Close'
+	// modify as shown below
+	if settingsth != nil { // &&  !settingsc.Content().Visible() {
+		settingsth.RequestFocus()
+	} else {
+		s := settings.NewSettings()
+		settingsth = a.NewWindow(timerName + ": Theme Settings")
+		settingsth.SetIcon(resourceTaniumTimerPng)
+
+		appearance := s.LoadAppearanceScreen(w)
+		tabs := container.NewAppTabs(
+			&container.TabItem{Text: "Theme Appearance - affects all fyne based apps", Icon: s.AppearanceIcon(), Content: appearance})
+		tabs.SetTabLocation(container.TabLocationLeading)
+		settingsth.SetContent(tabs)
+
+		settingsth.Resize(fyne.NewSize(520, 520))
+		settingsth.CenterOnScreen() // run centered on primary (laptop) display
+		settingsth.Show()
+		settingsth.SetCloseIntercept(func() {
+			settingsth.Close()
+			settingsth = nil
+		})
+	}
+}
+
+// modify the latest ~/go/pkg/mod/fyne.io/fyne/v2/cmd/fyne_settings/settings/appearance.go
+
+// add to function LoadAppearanceScreen last part with Apply & Close button:
+/*
+bottom := container.NewHBox(layout.NewSpacer(),
+		&widget.Button{Text: "Apply", Importance: widget.HighImportance, OnTapped: func() {
+			if s.fyneSettings.Scale == 0.0 {
+				s.chooseScale(1.0)
+			}
+			err := s.save()
+			if err != nil {
+				fyne.LogError("Failed on saving", err)
+			}
+
+			s.appliedScale(s.fyneSettings.Scale)
+		}},
+		&widget.Button{Text: "Apply & Close", Importance: widget.WarningImportance, OnTapped: func() {
+			if s.fyneSettings.Scale == 0.0 {
+				s.chooseScale(1.0)
+			}
+			err := s.save()
+			if err != nil {
+				fyne.LogError("Failed on saving", err)
+			}
+
+			s.appliedScale(s.fyneSettings.Scale)
+			w.Close()
+		}},
+	)
+*/
 
 func colorSelected(c color.Color, w fyne.Window, s string, a fyne.App) {
 	rectangle := canvas.NewRectangle(c)

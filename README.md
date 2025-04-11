@@ -4,6 +4,7 @@ preferences stored via fyne preferences API land in
 ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
 ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
 MacOS resource location (sounds and backgrounds): /Applications/Tanium Timer.app/Contents/Resources
+Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 
 ## Features
