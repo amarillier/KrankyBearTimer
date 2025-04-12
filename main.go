@@ -24,12 +24,12 @@ import (
 )
 
 const (
-	timerName      = "Tanium Timer"
-	timerVersion   = "0.8.3" // see FyneApp.toml
-	timerCopyright = "(c) Tanium, 2024, 2025"
-	timerAuthor    = "Allan Marillier"
+	timerName    = "Tanium Timer"
+	timerVersion = "0.8.4" // see FyneApp.toml
+	timerAuthor  = "Allan Marillier"
 )
 
+var timerCopyright = "(c) Tanium, 2024-" + strconv.Itoa(time.Now().Year())
 var running = binding.NewBool()
 var bg fyne.Canvas
 var remain int
@@ -63,6 +63,12 @@ var showdate int
 var showutc int
 var showhr12 int
 var hourchime int
+var automute int
+var currentvolume int
+var muteonhr int
+var muteonmin int
+var muteoffhr int
+var muteoffmin int
 var bgcolor string
 var timecolor string
 var datecolor string
@@ -149,6 +155,11 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	automute = a.Preferences().IntWithFallback("automute.default", 0)
+	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
+	muteonmin = a.Preferences().IntWithFallback("muteonmin.default", 0)
+	muteoffhr = a.Preferences().IntWithFallback("muteoffhr.default", 8)
+	muteoffmin = a.Preferences().IntWithFallback("muteoffmin.default", 0)
 	hourchime = a.Preferences().IntWithFallback("hourchime.default", 1)
 	bgcolor = a.Preferences().StringWithFallback("bgcolor.default", "0,143,251,255")      // blue
 	timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255") // orange
@@ -163,7 +174,7 @@ func main() {
 	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
 	// "Mon Jan 2 15:04:05 MST 2006"
-	endTime, err = time.Parse("15:04", "00:00") // set default midnight
+	endTime, _ = time.Parse("15:04", "00:00") // set default midnight
 
 	if len(os.Args) >= 2 {
 		log.Println("arg count:", len(os.Args))
@@ -199,7 +210,7 @@ func main() {
 	if desk, ok := a.(desktop.App); ok {
 		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 		if startclock == 1 {
-			clock(a) // , w, bg)
+			clock(a)
 		}
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)
@@ -218,8 +229,6 @@ func main() {
 			startTimer(adhocTime, "Ad Hoc Timer", w.Canvas(), w)
 		})
 		selected := fyne.NewMenuItem("Selected End Time", func() {
-			// now := time.Now()
-			// endTime = time.Date(now.Year(), now.Month(), now.Day(), customTime.Hour(), customTime.Minute(), 0, 0, now.Location())
 			startTimer(endTimeSec, "Selected End Time", w.Canvas(), w)
 		})
 		stop := fyne.NewMenuItem("Stop", func() {
@@ -291,12 +300,10 @@ It also includes an optional desktop clock that can be set to auto start when th
 				hlpText += "\n" + timerCopyright
 				hlpText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
 
-				plnText := `- Allow a setting to disable hourly chime after hours when hourly chime is enabled
-	- Plan for user selectable hour / minute time to mute / unmute
+				plnText := `- Allow multiple time zones for clock, hh:mm only + offset
+- Allow multiple alarm times with user selectable tones for each
 - Allow settings set/save window locations to open timer/clock,
 	unfortunately not implemented in the fyne library yet
-- Possible multiple time zones for clock, hh:mm only + offset
-- Possibly add clock settings tab to timer settings rather than have separate menu items
 - Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a TaniumTimer 
@@ -421,7 +428,7 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 		})
 		clock := fyne.NewMenuItem("Clock", func() {
 			if c == nil {
-				clock(a) // , w, bg)
+				clock(a)
 			} else {
 				c.RequestFocus()
 			}
@@ -440,17 +447,15 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 		quit := fyne.NewMenuItem("Quit", func() {
 			a.Quit()
 		})
-		// NOTE: clock does not work here, why? causes app "panic: send on closed channel"
-		// newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
-		newMenuOps := fyne.NewMenu("Operations", show, hide, fyne.NewMenuItemSeparator(), quit)
+		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
 		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
+		// NB Mac intercepts about below and puts it where they want to put it!
+		// Under 'Tanium Timer / About' main section, not under Help
 		newMenuHelp := fyne.NewMenu("Help", about, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
-		// New main menu
-		cmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
-		// setup main menu
-		c.SetMainMenu(cmenu)
-		// cmenu.Refresh()
+		barmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
+		w.SetMainMenu(barmenu)
+		// barmenu.Refresh()
 
 		running.AddListener(binding.NewDataListener(func() {
 			busy, _ := running.Get()
@@ -698,7 +703,7 @@ func updateTime(out *widget.RichText, time int) {
 	themeTimer(out, time)
 }
 
-func setEndTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string) { // time.Time {
+func setEndTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string) {
 	var selectedTime time.Time
 	var current string
 

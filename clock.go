@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"github.com/itchyny/volume-go"
 )
 
 // var c fyne.Window
@@ -133,9 +134,26 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		}
 		content := container.NewStack(background, vbox)
 
-		/**/
 		updateClock := func() {
 			now = time.Now()
+			if now.Hour() == muteonhr && now.Minute() == muteonmin && now.Second() == 0 {
+				if automute == 1 {
+					muted, _ := volume.GetMuted()
+					if !muted {
+						currentvolume, _ = volume.GetVolume()
+						volume.Mute()
+					}
+				}
+			} else if now.Hour() == muteoffhr && now.Minute() == muteoffmin && now.Second() == 0 {
+				if automute == 1 {
+					muted, _ := volume.GetMuted()
+					if muted {
+						volume.Unmute()
+						// volume.SetVolume(20)
+						volume.SetVolume(currentvolume)
+					}
+				}
+			}
 			if now.Minute() == 0 && now.Second() == 0 {
 				if hourchime == 1 {
 					if !checkFileExists(sndDir + "/" + hourchimesound) {

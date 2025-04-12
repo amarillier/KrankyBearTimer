@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"log"
 	"strconv"
+	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -24,6 +26,10 @@ var settingst fyne.Window
 var settingsc fyne.Window
 var settingsth fyne.Window
 var mycolor color.Color
+var muteonbutton *widget.Button
+var muteoffbutton *widget.Button
+var muteonlabel string
+var muteofflabel string
 
 func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
@@ -375,6 +381,11 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", 1)
 	a.Preferences().SetInt("showhr12.default", 1)
 	a.Preferences().SetInt("hourchime.default", 1)
+	a.Preferences().SetInt("automute.default", 0)
+	a.Preferences().SetInt("muteonhr.default", 20)
+	a.Preferences().SetInt("muteonmin.default", 0)
+	a.Preferences().SetInt("muteoffhr.default", 8)
+	a.Preferences().SetInt("muteoffmin.default", 0)
 	a.Preferences().SetString("bgcolor.default", "0,143,251,255")
 	a.Preferences().SetString("timecolor.default", "255,123,31,255")
 	a.Preferences().SetString("datecolor.default", "131,222,74,255")
@@ -411,6 +422,11 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", showdate)
 	a.Preferences().SetInt("showhr12.default", showhr12)
 	a.Preferences().SetInt("hourchime.default", hourchime)
+	a.Preferences().SetInt("automute.default", automute)
+	a.Preferences().SetInt("muteonhr.default", muteonhr)
+	a.Preferences().SetInt("muteonmin.default", muteonmin)
+	a.Preferences().SetInt("muteoffhr.default", muteoffhr)
+	a.Preferences().SetInt("muteoffmin.default", muteoffmin)
 	a.Preferences().SetString("bgcolor.default", bgcolor)
 	a.Preferences().SetString("timecolor.default", timecolor)
 	a.Preferences().SetString("datecolor.default", datecolor)
@@ -516,6 +532,19 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			a.Preferences().SetInt("showhr12.default", showhr12)
 		})
 		showhr1224.Horizontal = true
+		mute := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("automute set to", value)
+			}
+			switch value {
+			case true:
+				automute = 1
+			case false:
+				automute = 0
+			}
+			a.Preferences().SetInt("automute.default", automute)
+		})
+		// insert mute on and mute off selectors here ALLANM
 		chime := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
 				log.Println("hourchime set to", value)
@@ -724,15 +753,26 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
+			mute.SetChecked(false)
+			muteonhr = 20
+			muteonmin = 0
+			muteoffhr = 8
+			muteoffmin = 0
+			muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
+			muteofflabel = fmt.Sprintf("%02d:%02d", muteoffhr, muteoffmin)
+			muteonbutton.SetText("Mute: " + muteonlabel)
+			muteoffbutton.SetText("Unmute: " + muteofflabel)
+			muteonbutton.Refresh()
 			chime.SetChecked(true)
 			hourchimesound = "cuckoo.mp3"
 			chimesound.Selected = hourchimesound
-			startatboot.SetChecked(true)
+			startatboot.SetChecked(false)
 			showsec.Refresh()
 			showtz.Refresh()
 			showut.Refresh()
 			showhr1224.Refresh()
 			startatboot.Refresh()
+			mute.Refresh()
 			chime.Refresh()
 			chimesound.Refresh()
 			timesize = 48
@@ -777,6 +817,11 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		case 0:
 			showhr1224.SetSelected("24")
 		}
+		if automute == 1 {
+			mute.SetChecked(true)
+		} else {
+			mute.SetChecked(false)
+		}
 		if hourchime == 1 {
 			chime.SetChecked(true)
 		} else {
@@ -801,8 +846,29 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Auto Start With Timer", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
+			widget.NewFormItem("Auto Mute Volume", mute),
 		)
-
+		muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
+		muteonbutton = widget.NewButton("Mute: "+muteonlabel, func() {
+			muteon := selectTime(a, w, bg, "muteon", muteonhr, muteonmin)
+			if debug == 1 {
+				log.Println("muteon set to", muteon)
+			}
+			muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
+			// muteonbutton.SetText("Mute: " + muteonlabel)
+			// muteonbutton.Refresh()
+		})
+		muteofflabel := fmt.Sprintf("%02d:%02d", muteoffhr, muteoffmin)
+		muteoffbutton = widget.NewButton("Unmute: "+muteofflabel, func() {
+			muteoff := selectTime(a, w, bg, "muteoff", muteoffhr, muteoffmin)
+			if debug == 1 {
+				log.Println("muteoff set to", muteoff)
+			}
+			// a.Preferences().SetInt("muteoffhr.default", muteoffhr)
+			// a.Preferences().SetInt("muteoffmin.default", muteoffmin)
+		})
+		mwidget := container.NewHBox(
+			muteonbutton, muteoffbutton)
 		tcbutton := widget.NewButton("Time Color", func() {
 			tcolor := colorPicker(settingsc, "time", a)
 			if debug == 1 {
@@ -845,6 +911,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			ucbutton)
 
 		display := widget.NewForm(
+			widget.NewFormItem("", mwidget),
 			widget.NewFormItem("Time size", twidget),
 			widget.NewFormItem("Date size", dwidget),
 			widget.NewFormItem("UTC size", uwidget),
@@ -976,6 +1043,106 @@ func showFilePicker(w fyne.Window) {
 		fileURI = f.URI()
 		selectedFile.SetText(saveFile)
 	}, w)
+}
+
+func selectTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string, hr int, min int) string {
+	// var selectedTime time.Time
+	var current string
+	var myTime string
+
+	switch caller {
+	case "muteon":
+		hr = muteonhr
+		min = muteonmin
+	case "muteoff":
+		hr = muteoffhr
+		min = muteoffmin
+	default:
+		hr = time.Now().Hour()
+		min = time.Now().Minute()
+	}
+
+	t := a.NewWindow("Select Time")
+	// Set window size to fit the input prompt
+	t.Resize(fyne.NewSize(250, 100))
+
+	current = fmt.Sprintf("%02d:%02d", hr, min)
+
+	// Create a time entry widget
+	timeEntry := widget.NewEntry()
+	//timeEntry.SetPlaceHolder("Enter time (HH:MM)" + current)
+	timeEntry.SetPlaceHolder(current)
+	timeEntry.SetText(current)
+
+	// Create a label to display messages
+	messageLabel := widget.NewLabel("")
+
+	// Create a button to submit the time
+	submitButton := widget.NewButton("Set", func() {
+		selectedTime := timeEntry.Text
+		if isValidTime(selectedTime) {
+			endTime, _ := time.Parse("15:04", selectedTime)
+			messageLabel.SetText("Entered time: " + endTime.Format("15:04"))
+			t.Close()
+			parts := strings.Split(selectedTime, ":")
+			hour, _ := strconv.Atoi(parts[0])
+			min, _ := strconv.Atoi(parts[1])
+
+			switch caller {
+			case "muteon":
+				muteonhr = hour
+				muteonmin = min
+				muteonbutton.SetText(fmt.Sprintf("Mute: %02d:%02d", muteonhr, muteonmin))
+				muteonbutton.Refresh()
+				a.Preferences().SetInt("muteonhr.default", muteonhr)
+				a.Preferences().SetInt("muteonmin.default", muteonmin)
+			case "muteoff":
+				muteoffhr = hour
+				muteoffmin = min
+				muteoffbutton.SetText(fmt.Sprintf("Mute: %02d:%02d", muteoffhr, muteoffmin))
+				muteoffbutton.Refresh()
+				a.Preferences().SetInt("muteoffhr.default", muteoffhr)
+				a.Preferences().SetInt("muteoffmin.default", muteoffmin)
+			default:
+				hour = time.Now().Hour()
+				min = time.Now().Minute()
+			}
+		} else {
+			messageLabel.SetText("Enter a valid time 00:00 to 23:59 (HH:MM)")
+		}
+	})
+
+	// Arrange the widgets in a vertical box
+	content := container.NewVBox(
+		timeEntry,
+		submitButton,
+		messageLabel,
+	)
+
+	t.SetContent(content)
+	// t.CenterOnScreen() // run centered on primary (laptop) display
+	t.Show()
+	return myTime
+}
+
+// isValidTime checks if the entered time is valid in 24-hour format hh:mm
+func isValidTime(t string) bool {
+	parts := strings.Split(t, ":")
+	if len(parts) != 2 {
+		return false
+	}
+
+	hours, err1 := strconv.Atoi(parts[0])
+	minutes, err2 := strconv.Atoi(parts[1])
+
+	if err1 != nil || err2 != nil {
+		return false
+	}
+
+	if hours < 0 || hours > 23 || minutes < 0 || minutes > 59 {
+		return false
+	}
+	return true
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

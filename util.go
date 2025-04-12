@@ -164,6 +164,9 @@ func dadjoke() string {
 		"What do you call fake spaghetti?\nAn impasta",
 		"Why did the math book look sad?\nBecause it had too many problems",
 		"I was going to cook alligator tonight, but I only have a crocpot",
+		"A Japanese gardener asked me what I know about bonsai trees.\nI said, 'Very little'",
+		"A horse walked into a bar and ordered a beer. The bartender said 'You come in here often, do you think you might be an alcoholic?' The horse said 'I don'''t think I am, then vanishes from existence. You see, this joke is about Descartes, 'I think, therefore I am'. But to have explained that first would'''ve put Descartes before the horse.",
+		"Davey Crocket was the only man ever to have three ears.\nA left ear, a right ear, and a wild front ear",
 	}
 	randomIndex := rand.Intn(len(jokes))
 	joke := jokes[randomIndex]

@@ -78,6 +78,11 @@ winarm64:
 buildall: linuxamd64 linuxarm64 macamd64 macarm64 winamd64 winarm64
 .PHONY:buildall
 
+dmg: 
+	./dmgbuildARM.sh
+	./dmgbuildIntel.sh
+.PHONY:dmg
+
 clean:
 	rm bin/*/*
 .PHONY:clean
