@@ -22,9 +22,10 @@ import (
 var fileButton *widget.Button
 var selectedFile *widget.Label
 var fileURI fyne.URI
-var settingst fyne.Window
+var settingsti fyne.Window
 var settingsc fyne.Window
 var settingsth fyne.Window
+var tselect fyne.Window
 var mycolor color.Color
 var muteonbutton *widget.Button
 var muteoffbutton *widget.Button
@@ -33,14 +34,15 @@ var muteofflabel string
 
 func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
-	if settingst != nil { // &&  !settingst.Content().Visible() {
-		settingst.RequestFocus()
+	if settingsti != nil { // &&  !settingst.Content().Visible() {
+		settingsti.Show()
+		teapot(a, settingsti)
 	} else {
-		settingst = a.NewWindow(timerName + ": Settings")
-		settingst.SetIcon(resourceTaniumTimerPng)
+		settingsti = a.NewWindow(timerName + ": Settings")
+		settingsti.SetIcon(resourceTaniumTimerPng)
 		settingsText := `All updates are applied / saved immediately.
-	Note: timer background and timer buttons on the timer window do not currently auto refresh,
-	restart is required. Time changes do take immediate effect, refresh of background and buttons is planned`
+	Note: timer background does not currently auto refresh,	restart is required.
+	Time changes do take immediate effect, refresh of background is planned`
 		setText := widget.NewLabel(settingsText)
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 		todoText := widget.NewLabel("Still to be added: allow .mid and .wav sounds as well as selectable background images in addition to built in images")
@@ -141,7 +143,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			bg.FillMode = canvas.ImageFillContain
 			bg.Translucency = 0.5 // 0.85
-			// bg.Refresh()          // WHY does this not refresh????
+			bg.Refresh()          // WHY does this not refresh????
 			w.Canvas().Refresh(bg)
 			a.Preferences().SetString("background.default", timerbg)
 		})
@@ -275,8 +277,8 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		})
 		reset.Importance = widget.SuccessImportance // green
 		close := widget.NewButton("Close settings", func() {
-			settingst.Close()
-			settingst = nil
+			settingsti.Close()
+			settingsti = nil
 		})
 		close.Importance = widget.WarningImportance // orange
 
@@ -350,14 +352,14 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("", close),
 		)
 
-		settingst.Resize(fyne.NewSize(500, 300))
-		settingst.CenterOnScreen() // run centered on primary (laptop) display
-		settingst.SetContent(container.NewVBox(setText, setform, todoText))
-		settingst.SetCloseIntercept(func() {
-			settingst.Close()
-			settingst = nil
+		settingsti.Resize(fyne.NewSize(500, 300))
+		settingsti.CenterOnScreen() // run centered on primary (laptop) display
+		settingsti.SetContent(container.NewVBox(setText, setform, todoText))
+		settingsti.SetCloseIntercept(func() {
+			settingsti.Close()
+			settingsti = nil
 		})
-		settingst.Show()
+		settingsti.Show()
 	}
 }
 
@@ -381,6 +383,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", 1)
 	a.Preferences().SetInt("showhr12.default", 1)
 	a.Preferences().SetInt("hourchime.default", 1)
+	a.Preferences().SetInt("slockmute.default", 0)
 	a.Preferences().SetInt("automute.default", 0)
 	a.Preferences().SetInt("muteonhr.default", 20)
 	a.Preferences().SetInt("muteonmin.default", 0)
@@ -422,6 +425,7 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetInt("showdate.default", showdate)
 	a.Preferences().SetInt("showhr12.default", showhr12)
 	a.Preferences().SetInt("hourchime.default", hourchime)
+	a.Preferences().SetInt("slockmute.default", slockmute)
 	a.Preferences().SetInt("automute.default", automute)
 	a.Preferences().SetInt("muteonhr.default", muteonhr)
 	a.Preferences().SetInt("muteonmin.default", muteonmin)
@@ -444,13 +448,14 @@ func writeSettings(a fyne.App) {
 func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
 	if settingsc != nil { // &&  !settingsc.Content().Visible() {
-		settingsc.RequestFocus()
+		settingsc.Show()
+		teapot(a, settingsc)
 	} else {
 		settingsc = a.NewWindow(timerName + ": Clock Settings")
 		settingsc.SetIcon(resourceTaniumTimerPng)
 		settingsText := `All updates are applied / saved immediately.
-	Note: settings do not currently auto refresh, restart is required.
-	Displaying seconds can be much more CPU intensive than not!`
+	Note: clock display settings do not currently auto refresh, restart is required.
+	Displaying clock seconds can be much more CPU intensive than not!`
 		setText := widget.NewLabel(settingsText)
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 
@@ -544,7 +549,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			a.Preferences().SetInt("automute.default", automute)
 		})
-		// insert mute on and mute off selectors here ALLANM
 		chime := widget.NewCheck("", func(value bool) {
 			if debug == 1 {
 				log.Println("hourchime set to", value)
@@ -600,6 +604,18 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				autoClock.Disable()
 			}
 			a.Preferences().SetInt("startclock.default", startclock)
+		})
+		lockmute := widget.NewCheck("", func(value bool) {
+			if debug == 1 {
+				log.Println("slockmute set to", value)
+			}
+			switch value {
+			case true:
+				slockmute = 1
+			case false:
+				slockmute = 0
+			}
+			a.Preferences().SetInt("slockmute.default", slockmute)
 		})
 
 		tsz := widget.NewEntry()
@@ -753,6 +769,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showdt.SetChecked(true)
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
+			lockmute.SetChecked(false)
 			mute.SetChecked(false)
 			muteonhr = 20
 			muteonmin = 0
@@ -772,6 +789,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showut.Refresh()
 			showhr1224.Refresh()
 			startatboot.Refresh()
+			lockmute.Refresh()
 			mute.Refresh()
 			chime.Refresh()
 			chimesound.Refresh()
@@ -833,6 +851,11 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		} else {
 			startatboot.SetChecked(false)
 		}
+		if slockmute == 1 {
+			lockmute.SetChecked(true)
+		} else {
+			lockmute.SetChecked(false)
+		}
 
 		/*
 			background.Selected = timerbg
@@ -846,21 +869,25 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			widget.NewFormItem("Auto Start With Timer", startatboot),
 			widget.NewFormItem("Hourly Chime", chime),
 			widget.NewFormItem("Hourly Chime Sound", chimesound),
-			widget.NewFormItem("Auto Mute Volume", mute),
+			widget.NewFormItem("Lock Mute Volume", lockmute),
+			widget.NewFormItem("Auto Mute Volume (Time)", mute),
 		)
 		muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
 		muteonbutton = widget.NewButton("Mute: "+muteonlabel, func() {
 			muteon := selectTime(a, w, bg, "muteon", muteonhr, muteonmin)
+			muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
+			settingsc.RequestFocus()
 			if debug == 1 {
 				log.Println("muteon set to", muteon)
 			}
-			muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
 			// muteonbutton.SetText("Mute: " + muteonlabel)
 			// muteonbutton.Refresh()
 		})
 		muteofflabel := fmt.Sprintf("%02d:%02d", muteoffhr, muteoffmin)
 		muteoffbutton = widget.NewButton("Unmute: "+muteofflabel, func() {
 			muteoff := selectTime(a, w, bg, "muteoff", muteoffhr, muteoffmin)
+			muteofflabel = fmt.Sprintf("%02d:%02d", muteoffhr, muteoffmin)
+			settingsc.RequestFocus()
 			if debug == 1 {
 				log.Println("muteoff set to", muteoff)
 			}
@@ -922,6 +949,10 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingsc.SetContent(container.NewVBox(setText, setform, display, buttonRow, doText))
 		// reset.Resize(fyne.NewSize(reset.MinSize().Width, reset.MinSize().Height))
 		settingsc.SetCloseIntercept(func() {
+			if tselect != nil {
+				tselect.Close()
+				tselect = nil
+			}
 			settingsc.Close()
 			settingsc = nil
 		})
@@ -946,7 +977,8 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// but here I use a customized version to add a button 'Apply & Close'
 	// modify as shown below
 	if settingsth != nil { // &&  !settingsc.Content().Visible() {
-		settingsth.RequestFocus()
+		settingsth.Show()
+		teapot(a, settingsth)
 	} else {
 		s := settings.NewSettings()
 		settingsth = a.NewWindow(timerName + ": Theme Settings")

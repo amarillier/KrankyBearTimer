@@ -9,6 +9,7 @@
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumGrayTeach.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumConverge2024a.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/http418.png
 
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/boing.mp3
 ///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Basso.mp3

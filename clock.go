@@ -10,14 +10,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
+	"github.com/IamFaizanKhalid/lock"
 	"github.com/itchyny/volume-go"
 )
 
-// var c fyne.Window
+// var clock fyne.Window
 
-func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
-	if c != nil { // &&  !c.Content().Visible() {
-		c.RequestFocus()
+func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
+	if clock != nil { // &&  !clock.Content().Visible() {
+		clock.RequestFocus()
 	} else {
 		var tre, tgr, tbl, ta uint8
 		colors := strings.Split(timecolor, ",")
@@ -63,8 +64,8 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		col, _ = strconv.ParseUint(colors[3], 10, 8)
 		ua = uint8(col)
 
-		c = a.NewWindow("Tanium Clock")
-		c.SetIcon(resourceTaniumTimerPng)
+		clock = a.NewWindow("Tanium Clock")
+		clock.SetIcon(resourceTaniumTimerPng)
 
 		now := time.Now()
 		// timeFormat := `15:04:05`
@@ -165,13 +166,17 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			}
 
 			nowtime.Text = now.Format(timeFormat)
-			nowtime.Refresh()
-			nowdate.Refresh()
+			fyne.Do(func() {
+				nowtime.Refresh()
+				nowdate.Refresh()
+			})
 			nowdate.Text = now.Format(dateFormat)
 			if showutc == 1 {
 				utc := now.UTC()
 				utctime.Text = utc.Format(utcFormat) + offsetString
-				utctime.Refresh()
+				fyne.Do(func() {
+					utctime.Refresh()
+				})
 			}
 		}
 
@@ -186,19 +191,35 @@ func clock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 				if showseconds == 1 || now.Second() == 0 {
 					updateClock()
 				}
+				// lock screen / mute volume event handler, but only if enabled
+				// and only unmute if we auto muted. If user had already muted, don't
+				if slockmute == 1 {
+					if lock.IsScreenLocked() {
+						muted, _ := volume.GetMuted()
+						if !muted {
+							clockmutedvol = 1
+							volume.Mute()
+						}
+					} else {
+						lockmuted, _ := volume.GetMuted()
+						if lockmuted && clockmutedvol == 1 {
+							clockmutedvol = 0
+							volume.Unmute()
+						}
+					}
+				}
 			}
 		}()
-		/**/
 
-		c.SetContent(content)
-		c.SetCloseIntercept(func() {
-			c.Close()
-			c = nil
+		clock.SetContent(content)
+		clock.SetCloseIntercept(func() {
+			clock.Close()
+			clock = nil
 		})
-		c.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
-		// c.Resize(fyne.NewSize(300, 200))
-		// c.ShowAndRun()  // for standalone clock app
-		c.Show() // for func inside TaniumTimer
+		clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
+		// clock.Resize(fyne.NewSize(300, 200))
+		// clock.ShowAndRun()  // for standalone clock app
+		clock.Show() // for func inside TaniumTimer
 	}
 }
 

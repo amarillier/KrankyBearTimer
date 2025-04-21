@@ -25,7 +25,7 @@ import (
 
 const (
 	timerName    = "Tanium Timer"
-	timerVersion = "0.8.4" // see FyneApp.toml
+	timerVersion = "0.8.5" // see FyneApp.toml
 	timerAuthor  = "Allan Marillier"
 )
 
@@ -46,7 +46,7 @@ var endTime time.Time
 var customTime time.Time
 var endTimeSec int
 var menu *fyne.Menu
-var c fyne.Window // clock window
+var clock fyne.Window // clock window
 
 var imgDir string
 var timerbg string
@@ -63,6 +63,8 @@ var showdate int
 var showutc int
 var showhr12 int
 var hourchime int
+var slockmute int
+var clockmutedvol int
 var automute int
 var currentvolume int
 var muteonhr int
@@ -123,9 +125,9 @@ func main() {
 	w := a.NewWindow(timerName)
 	w.SetIcon(resourceTaniumTimerPng)
 	w.SetPadded(false)
-	w.SetCloseIntercept(func() {
-		a.Quit() // force quit, normal when somebody hits "x" to close
-	})
+	//w.SetCloseIntercept(func() {
+	//	a.Quit() // force quit, normal when somebody hits "x" to close
+	//})
 	w.SetMaster()      // this sets this as master and closes all child windows
 	w.CenterOnScreen() // run centered on primary (laptop) display
 
@@ -155,6 +157,7 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	slockmute = a.Preferences().IntWithFallback("slockmute.default", 0)
 	automute = a.Preferences().IntWithFallback("automute.default", 0)
 	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
 	muteonmin = a.Preferences().IntWithFallback("muteonmin.default", 0)
@@ -210,7 +213,7 @@ func main() {
 	if desk, ok := a.(desktop.App); ok {
 		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
 		if startclock == 1 {
-			clock(a)
+			desktopclock(a)
 		}
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)
@@ -239,7 +242,7 @@ func main() {
 			aboutText += "\n" + timerCopyright
 			aboutText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
-			aboutText += "\nAnd looking about too much might expose an easter egg!"
+			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
 
 			if abt == nil {
 				abt = a.NewWindow(timerName + ": About")
@@ -250,7 +253,7 @@ func main() {
 					abt.Close()
 					abt = nil
 				})
-				abt.CenterOnScreen() // run centered on primary (laptop) display
+				abt.CenterOnScreen() // run centered on pr1imary (laptop) display
 				abt.Show()
 			} else {
 				abt.RequestFocus()
@@ -427,10 +430,10 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 			makeSettingsTheme(a, w, bg)
 		})
 		clock := fyne.NewMenuItem("Clock", func() {
-			if c == nil {
-				clock(a)
+			if clock == nil {
+				desktopclock(a)
 			} else {
-				c.RequestFocus()
+				clock.RequestFocus()
 			}
 		})
 		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, help, settingsTimer, settingsClock, settingsTheme)
@@ -497,11 +500,11 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 	})
 	endset.Importance = widget.WarningImportance // orange
 
-	quit := widget.NewButton("Quit", func() {
-		a.Quit()
-	})
-	quit.Importance = widget.HighImportance // red
-	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset, quit)
+	//quit := widget.NewButton("Quit", func() {
+	//	a.Quit()
+	//})
+	// quit.Importance = widget.HighImportance  // red
+	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset) //, quit)
 
 	lunch := widget.NewButton("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
 		startTimer(lunchTime, "Lunch", w.Canvas(), w)
@@ -592,7 +595,9 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 		// systray.SetTitle(timerName)
 	}
 	ticker := widget.NewRichText()
-	updateTime(ticker, remain)
+	fyne.Do(func() {
+		updateTime(ticker, remain)
+	})
 
 	stop := widget.NewButton("Stop", nil)
 	overlay := container.NewPadded(container.NewVBox(
@@ -616,7 +621,9 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	}
 	go func() {
 		for remain > 0 {
-			updateTime(ticker, remain)
+			fyne.Do(func() {
+				updateTime(ticker, remain)
+			})
 			// system tray tooltip is not supported on Windows!
 			if traytimer == 1 && runtime.GOOS != "windows" {
 				if _, ok := fyne.CurrentApp().(desktop.App); ok {
@@ -658,7 +665,9 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			remain--
 			time.Sleep(time.Second)
 		}
-		w.SetTitle(timerName)
+		fyne.Do(func() {
+			w.SetTitle(timerName)
+		})
 		running.Set(false)
 		if remain == 0 {
 			updateTime(ticker, remain)

@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -80,7 +79,7 @@ func logRotate() {
 func easterEgg(a fyne.App, w fyne.Window) {
 	muted, _ := volume.GetMuted()
 	vol, _ := volume.GetVolume()
-	var eggvol = 20
+	var eggvol = 15
 
 	certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
 	randomIndex := rand.Intn(len(certs))
@@ -101,21 +100,67 @@ func easterEgg(a fyne.App, w fyne.Window) {
 			volume.SetVolume(eggvol)
 		}
 	}
-	for j := 0; j <= 2; j++ {
-		playBeep("down")
-		egg.Show()
-		time.Sleep(time.Second / 3)
-		egg.Hide()
-		time.Sleep(time.Second / 3)
-	}
+	playBeep("down")
+	/*
+		for j := 0; j <= 2; j++ {
+			playBeep("down")
+			egg.Show()
+			time.Sleep(time.Second / 3)
+			egg.Hide()
+			time.Sleep(time.Second / 3)
+		}
+	*/
 	if muted {
 		if eggvol > vol {
 			volume.SetVolume(vol)
 		}
 		volume.Mute()
 	}
-	egg.Show()
 	w.RequestFocus()
+	egg.Show()
+}
+
+func teapot(a fyne.App, w fyne.Window) {
+	muted, _ := volume.GetMuted()
+	vol, _ := volume.GetVolume()
+	var teapotvol = 10
+
+	tpwin := a.NewWindow(timerName + ": http: 418")
+	tpwin.SetIcon(resourceTaniumTimerPng)
+	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
+	tpwinimage.FillMode = canvas.ImageFillOriginal
+	text := "Whoo-hoo! You found another Easter egg!\n"
+
+	tpwintext := widget.NewLabel(text)
+	content := container.NewVBox(tpwinimage, tpwintext)
+	tpwin.SetContent(content)
+	// tpwin.CenterOnScreen() // run centered on primary (laptop) display
+	// tpwin.Show()
+	if muted {
+		volume.Unmute()
+		if vol <= 10 {
+			volume.SetVolume(teapotvol)
+		}
+	}
+	playBeep("down")
+	/*
+		for j := 0; j <= 2; j++ {
+			// playBeep("down")
+			fmt.Println("egg loop")
+			tpwin.Show()
+			time.Sleep(time.Second / 3)
+			tpwin.Hide()
+			time.Sleep(time.Second / 3)
+		}
+	*/
+	if muted {
+		if teapotvol > vol {
+			volume.SetVolume(vol)
+		}
+		volume.Mute()
+	}
+	w.RequestFocus()
+	tpwin.Show()
 }
 
 func listMatchingFiles(directory, pattern string) ([]string, error) {
