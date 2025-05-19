@@ -1,7 +1,7 @@
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcn.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcbe.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/tcc.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer.png
+//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearTimer.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTimer2.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainBlue.png
 //go:generate fyne bundle -o bundled.go -a Resources/Images/TaniumTrainStone.png

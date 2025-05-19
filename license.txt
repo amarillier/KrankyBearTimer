@@ -1,16 +1,11 @@
-This application is "Beta Software" as defined in the license agreement found at the link below. 
-Please take a moment to read the license agreement:
- 
-https://www.tanium.com/end-user-license-agreement-policy
- 
-In addition, please note that:
-This application is intended for internal Tanium use, however no proprietary
-information or features are included, so pending Tanium legal and other 
-approvals this application may be made available to others. This application
-provides no guarantees as to stability of operations or suitability for any
-purpose, but every attempt has been made to make this application reliable.
+This application is "FREE Software". 
+
+This application is intended for any use by any individual, in any organization.
+
+This application provides no guarantees as to stability of operations or suitability 
+for any purpose, but every attempt has been made to make this application reliable.
 
 Using this application (and reading this text) is considered acceptance of
-the terms of the License Agreement, and acknowledgement that this is Beta
-Software and the additional terms above
+the terms of the License Agreement, and acknowledgement that this is FREE
+Software and the additional terms above.
 

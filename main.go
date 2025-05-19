@@ -24,12 +24,12 @@ import (
 )
 
 const (
-	timerName    = "Tanium Timer"
+	timerName    = "KrankyBear Timer"
 	timerVersion = "0.8.5" // see FyneApp.toml
 	timerAuthor  = "Allan Marillier"
 )
 
-var timerCopyright = "(c) Tanium, 2024-" + strconv.Itoa(time.Now().Year())
+var timerCopyright = "(c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var running = binding.NewBool()
 var bg fyne.Canvas
 var remain int
@@ -95,8 +95,8 @@ var abt fyne.Window
 var hlp fyne.Window
 
 // preferences stored via fyne preferences API land in
-// ~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
-// ~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
+// ~/Library/Preferences/fyne/com.KB.KrankyBearTimer/preferences.json
+// ~\AppData\Roaming\fyne\com.KB.KrankyBearTimer\preferences.json
 // {"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3", "sound.default":1}
 
 func main() {
@@ -108,7 +108,7 @@ func main() {
 	launchDir := filepath.Dir(exePath)
 
 	if runtime.GOOS == "darwin" {
-		if strings.HasPrefix(launchDir, "/Applications/TaniumTimer") {
+		if strings.HasPrefix(launchDir, "/Applications/KrankyBearTimer") {
 			sndDir = launchDir + "/../Resources/Sounds"
 			imgDir = launchDir + "/../Resources/Images"
 		} else {
@@ -120,10 +120,10 @@ func main() {
 		imgDir = launchDir + "/Resources/Images"
 	}
 
-	a := app.NewWithID("com.tanium.TaniumTimer")
+	a := app.NewWithID("com.KB.KrankyBearTimer")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	w := a.NewWindow(timerName)
-	w.SetIcon(resourceTaniumTimerPng)
+	w.SetIcon(resourceKrankyBearTimerPng)
 	w.SetPadded(false)
 	//w.SetCloseIntercept(func() {
 	//	a.Quit() // force quit, normal when somebody hits "x" to close
@@ -184,7 +184,7 @@ func main() {
 		if os.Args[1] == "debug" || os.Args[1] == "d" {
 			debug = 1
 			logInit()
-			r, _ := os.Open("TaniumTimer0.txt")
+			r, _ := os.Open("KrankyBearTimer0.txt")
 			logLines, _ := lineCounter(r)
 			r.Close()
 			InfoLog.Println("logLines:", logLines)
@@ -211,7 +211,7 @@ func main() {
 	}
 
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
 		if startclock == 1 {
 			desktopclock(a)
 		}
@@ -246,7 +246,7 @@ func main() {
 
 			if abt == nil {
 				abt = a.NewWindow(timerName + ": About")
-				abt.SetIcon(resourceTaniumTimerPng)
+				abt.SetIcon(resourceKrankyBearTimerPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetCloseIntercept(func() {
@@ -263,7 +263,7 @@ func main() {
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
 				hlp = a.NewWindow(timerName + ": Help")
-				hlp.SetIcon(resourceTaniumTimerPng)
+				hlp.SetIcon(resourceKrankyBearTimerPng)
 				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
 It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
 
@@ -309,12 +309,12 @@ It also includes an optional desktop clock that can be set to auto start when th
 	unfortunately not implemented in the fyne library yet
 - Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
-	- To run more than one simultaneously, in terminal: open -n -a TaniumTimer 
+	- To run more than one simultaneously, in terminal: open -n -a KrankyBearTimer 
 - Add lab timer button
 - Add more selectable timer buttons - list? Readable from prefs
 - Timer show progress bar? Cute but not really necessary, countdown is very clear
 - Center + / - below ad hoc button in canvas?
-- Reset timer name in window title to 'Tanium Timer' after user stop or timer end
+- Reset timer name in window title to 'KrankyBear Timer' after user stop or timer end
 - Test if already running bring to front and exit, optional setting to allow multiple timers
 - Add pause/resume buttons to pause and resume a running timer
 - Allow selectable png /svg images as backgrounds
@@ -337,25 +337,23 @@ It also includes an optional desktop clock that can be set to auto start when th
 - OpenGL drivers are required for some Windows systems, not a bug but a
 	specific library requirement that might not allow some to use this app
 	`
-				link, err := url.Parse("https://www.tanium.com/end-user-license-agreement-policy")
+				link, err := url.Parse("https://github.com/amarillier/KrankyBearTimer/blob/main/license.txt")
 				if err != nil {
 					fyne.LogError("Could not parse URL", err)
 				}
-				hyperlink := widget.NewHyperlink("https://www.tanium.com/end-user-license-agreement-policy", link)
+				hyperlink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearTimer/blob/main/license.txt", link)
 				hyperlink.Alignment = fyne.TextAlignLeading
-				licText := `Tanium Timer is “Beta Software” as defined in the license agreement found at the link below. 
-Please take a moment to read the license agreement:
+				licText := `KrankyBearTimer is FREE Software” as defined in the license agreement below. 
  
-In addition, please note that:
-Tanium Timer is intended for internal Tanium use, however no proprietary
-information or features are included, so pending Tanium legal and other 
-approvals this application may be made available to others. Tanium Timer
+This application is "FREE Software". 
+
+This application is intended for any use by any individual, in any organization. This application
 provides no guarantees as to stability of operations or suitability for any
 purpose, but every attempt has been made to make this application reliable.
 
 Using this application (and reading this text) is considered acceptance of
-the terms of the License Agreement, and acknowledgement that this is Beta
-Software and the additional terms above
+the terms of the License Agreement, and acknowledgement that this is FREE
+Software and the additional terms above.
 `
 
 				settingsText := `Settings are a separate tray menu item
@@ -374,11 +372,11 @@ Settings contains defaults as below, which can be modified, and also reset to de
 "utccolor.default":"238,229,58,255","utcfont.default":"arial",
 "utcsize.default":18}
 
-Tanium Timer looks for directories named Resources/Images and Resources/Sounds,
+KrankyBear Timer looks for directories named Resources/Images and Resources/Sounds,
 containing images and sounds.
 
 IMAGES:
-Background blue refers to a compiled in resource with Tanium blue background. 
+Background blue refers to a compiled in resource with blue background. 
 Other supported compiled in backgrounds are: stone, almond, converge24 and converge24a
 Future additions will allow selecting images of your choice, png, SVG,
 	jpg maybe and specifying size - height / width. Manual window resizing
@@ -390,12 +388,12 @@ Built in tones include 'ding', 'down', 'up', and 'updown'. These are always avai
 The sounds directory as distributed also contains a number of other .mp3 files
 including baseball.mp3, grandfatherclock.mp3, hero.mp3, pinball.mp3, sosumi.mp3
 When selecting sounds, the sound will be played as a preview when possible.
-When selected sounds are not present (removed from Sounds), Tanium Timer defaults
+When selected sounds are not present (removed from Sounds), KrankyBear Timer defaults
 	to playing built in tones ding, down, up or updown
 Future additions will allow also choosing from any .mid or .wav sound files of your
 	choice if located in the Sounds directory
 
-MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
+MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
 `
 				lic := widget.NewLabel(licText)
 				tabs := container.NewDocTabs(
@@ -438,7 +436,7 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 		})
 		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, help, settingsTimer, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
 		systray.SetTooltip(timerName)
 
 		// Menu items
@@ -453,7 +451,7 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
 		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
 		// NB Mac intercepts about below and puts it where they want to put it!
-		// Under 'Tanium Timer / About' main section, not under Help
+		// Under 'KrankyBear Timer / About' main section, not under Help
 		newMenuHelp := fyne.NewMenu("Help", about, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
 		barmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
@@ -537,11 +535,13 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 	content := container.NewCenter(container.NewVBox(container.NewGridWithColumns(2, biobreak, lunch, adhocbtn, endtime), lessmoreRow))
 
 	bg := canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+	// bg := canvas.NewImageFromFile("./Resources/Images/notUsed/TaniumGrayTeach.png")
 	switch timerbg {
 	case "taniumtimer2":
 		bg = canvas.NewImageFromResource(resourceTaniumTimer2Png)
 	case "blue":
 		bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+		// bg = canvas.NewImageFromFile("./Resources/Images/notUsed/TaniumGrayTeach.png")
 	case "stone":
 		bg = canvas.NewImageFromResource(resourceTaniumTrainStonePng)
 	case "almond":
@@ -549,7 +549,7 @@ MacOS resource location: /Applications/Tanium Timer.app/Contents/Resources
 	case "taniumgrayteach":
 		bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
 	case "taniumtimer":
-		bg = canvas.NewImageFromResource(resourceTaniumTimerPng)
+		bg = canvas.NewImageFromResource(resourceKrankyBearTimerPng)
 	case "converge24":
 		bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
 	case "converge24a":
@@ -590,7 +590,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	w.SetTitle(timerName + ": " + name)
 	running.Set(true)
 	if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceTaniumTimerPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
 		systray.SetTooltip(timerName)
 		// systray.SetTitle(timerName)
 	}
@@ -612,7 +612,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 		remain = -1 // don't notify
 		w.SetTitle(timerName)
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceTaniumTimerPng)
+			desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
 			systray.SetTooltip(timerName)
 			systray.SetTitle("")
 			stop.Disable()
@@ -698,7 +698,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			}
 		}
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceTaniumTimerPng)
+			desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
 			systray.SetTooltip(timerName)
 			systray.SetTitle("")
 		}

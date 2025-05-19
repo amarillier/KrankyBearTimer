@@ -1,9 +1,9 @@
-# Tanium Timer - personal fun / learning side project
+# KrankyBear Timer - personal fun / learning side project
 
 preferences stored via fyne preferences API land in
-~/Library/Preferences/fyne/com.tanium.taniumtimer/preferences.json
-~\AppData\Roaming\fyne\com.tanium.taniumtimer\preferences.json
-MacOS resource location (sounds and backgrounds): /Applications/Tanium Timer.app/Contents/Resources
+~/Library/Preferences/fyne/com.KB.KrankyBearTimer/preferences.json
+~\AppData\Roaming\fyne\com.KB.KrankyBearimer\preferences.json
+MacOS resource location (sounds and backgrounds): /Applications/KrankyBear Timer.app/Contents/Resources
 Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 
@@ -29,7 +29,7 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 # Info for compiling / modifying
 
 # modules
-go mod init TaniumTimer
+go mod init KrankyBearTimer
 
 go mod tidy
 
@@ -90,11 +90,11 @@ https://convertio.co/
 https://www.freeconvert.com/png-to-svg/download
 
 # use https://www.aconvert.com/image/png-to-icns/ for png to icns conversion
-mkdir TaniumTimer.app
-cp TaniumTimer TaniumTimer.app
-cp bg.tiff TaniumTimer/.bg.tiff
-cp Icon* TaniumTimer.app
-cp README.md TaniumTimer.app
+mkdir KrankyBearTimer.app
+cp KrankyBearTimer KrankyBearTimer.app
+cp bg.tiff KrankyBearTimer/.bg.tiff
+cp Icon* KrankyBearTimer.app
+cp README.md KrankyBearTimer.app
 
 
 # Audio: audio converter https://online-audio-convert.com/en/mpeg-to-mp3/
@@ -108,13 +108,13 @@ MacOS extended / journaled, no encryption, no partition map
 -noaddpmap
 
 
-hdiutil create -megabytes 80 -readwrite -volname "TaniumTimer" -srcfolder "TaniumTimer.app" -ov -format UDZO "TaniumTimer.dmg"
-hdiutil attach -owners on ./TaniumTimer.dmg -shadow
-cp "Applications alias" /Volumes/TaniumTimer
-cp bg.tiff /Volumes/TaniumTimer/.bg.tiff
-disk=$(diskutil list | grep TaniumTimer | awk '{ print $NF }')
+hdiutil create -megabytes 80 -readwrite -volname "KrankyBearTimer" -srcfolder "KrankyBearTimer.app" -ov -format UDZO "KrankyBearTimer.dmg"
+hdiutil attach -owners on ./KrankyBearTimer.dmg -shadow
+cp "Applications alias" /Volumes/KrankyBearTimer
+cp bg.tiff /Volumes/KrankyBearTimer/.bg.tiff
+disk=$(diskutil list | grep KrankyBearTimer | awk '{ print $NF }')
 hdiutil detach /dev/$disk
-hdiutil convert TaniumTimer.dmg -format UDRO -o ./TaniumTimerRO.dmg
+hdiutil convert KrankyBearTimer.dmg -format UDRO -o ./KrankyBearTimerRO.dmg
 
 
 
@@ -128,10 +128,10 @@ https://milanpanchal24.medium.com/a-guide-to-converting-app-to-dmg-on-macos-c19f
 
 
 # Generate the DMG file with debug option
-hdiutil create -volname "TaniumTimer" -srcfolder "TaniumTimer.app" -ov -format UDZO "TaniumTimer.dmg" -debug
+hdiutil create -volname "KrankyBearTimer" -srcfolder "KrankyBearTimer.app" -ov -format UDZO "KrankyBearTimer.dmg" -debug
 
 # Generate the DMG file with encryption [AES-128|AES-256]
-hdiutil create -volname "TaniumTimer" -srcfolder "TaniumTimer.app" -ov -format UDZO "TaniumTimer.dmg" -encryption AES-128
+hdiutil create -volname "KrankyBearTimer" -srcfolder "KrankyBearTimer.app" -ov -format UDZO "KrankyBearTimer.dmg" -encryption AES-128
 
 https://stackoverflow.com/questions/37292756/how-to-create-a-dmg-file-for-a-app-for-mac
 

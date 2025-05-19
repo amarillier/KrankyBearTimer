@@ -14,9 +14,9 @@ templates/*
 test/*
 tst/*
 bin/*
-TaniumTimer.app
-TaniumTimer
-TaniumTimer.exe
+KrankyBearTimer.app
+KrankyBearTimer
+KrankyBearTimer.exe
 UNUSED/*
 Resources/*.txt
 Resources/*/notUsed

@@ -1,0 +1,63 @@
+Release notes
+
+0.8.6 NEXT
+- Added release notes
+-
+- Adding "days until ..." calculation, optional display via settings in clock
+- 
+- Improve  selected end time
+- Add optional extra time zones to display in clock
+- Add optional alarms similar to phone - one time, repeat interval in clock
+- Possible add API to get current location temperature? in clock
+- Possible add update checker
+
+
+0.8.5 
+- Convert fyne 2.5 to 2.6.0 (better / lower resource use)
+- other minor improvements
+
+
+0.8.4
+- clock optional mute / unmute when screen locked and based on user selectable time
+- other minor improvements
+
+
+0.8.3
+- User selectable end time for countdown timer - set time like an alarm
+- improve system tray / menu bar for both MacOS and Windows
+- fix Inno setup to not install with autostart at boot enabled
+- add theme settings (light / dark)
+
+
+0.7.1
+- Clock updates
+- improve system tray / menu bar for both MacOS and Windows
+- add optional clock auto start at timer start
+- allow turning clock seconds display off (less resource use)
+- other clock improvements
+
+
+0.7
+- Clock minor updates
+- add Windows Inno Setup installer
+- small improvements
+
+
+0.6
+- Updated clock for single window and proper close, other clock updates
+- Updated settings
+- Updated help
+- Updated resources
+- Installers directory
+- many small improvements
+
+
+0.5
+- add optional auto start at boot
+- add optional desktop clock
+- add MacOS dmg installers
+
+
+0.3 
+- initial checkin
+

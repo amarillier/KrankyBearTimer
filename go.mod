@@ -1,4 +1,4 @@
-module TaniumTimer
+module KrankyBearTimer
 
 go 1.23.2
 

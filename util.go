@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -28,11 +29,27 @@ func checkFileExists(filePath string) bool {
 	return !errors.Is(error, os.ErrNotExist)
 }
 
+func daysUntil(targetDate string) (int, error) {
+	// Parse the target date
+	layout := "2006-01-02"
+	target, err := time.Parse(layout, targetDate)
+	if err != nil {
+		return 0, err
+	}
+	// Get the current date
+	current := time.Now()
+	// Calculate the duration between the current date and the target date
+	duration := target.Sub(current)
+	// Convert the duration to days
+	days := int(duration.Hours() / 24)
+	return days, nil
+}
+
 // see error logging:
 // https://rollbar.com/blog/golang-error-logging-guide/
 func logInit() {
 	// typically written to Resources/...
-	file, err := os.OpenFile("TaniumTimer0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile("KrankyBearTimer0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,17 +79,17 @@ func lineCounter(r io.Reader) (int, error) {
 }
 
 func logRotate() {
-	if checkFileExists("TaniumTimer2.txt") {
-		f := os.Remove("TaniumTimer2.txt")
+	if checkFileExists("KrankyBearTimer2.txt") {
+		f := os.Remove("KrankyBearTimer2.txt")
 		if f != nil {
-			ErrorLog.Println("Error attempting to remove TaniumTimer2.txt")
+			ErrorLog.Println("Error attempting to remove KrankyBearTimer2.txt")
 		}
 	}
-	if checkFileExists("TaniumTimer1.txt") {
-		os.Rename("TaniumTimer1.txt", "TaniumTimer2.txt")
+	if checkFileExists("KrankyBearTimer1.txt") {
+		os.Rename("KrankyBearTimer1.txt", "KrankyBearTimer2.txt")
 	}
-	if checkFileExists("TaniumTimer0.txt") {
-		os.Rename("TaniumTimer0.txt", "TaniumTimer1.txt")
+	if checkFileExists("KrankyBearTimer0.txt") {
+		os.Rename("KrankyBearTimer0.txt", "KrankyBearTimer1.txt")
 	}
 }
 
@@ -84,7 +101,7 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
 	randomIndex := rand.Intn(len(certs))
 	egg := a.NewWindow(timerName + ": easter egg")
-	egg.SetIcon(resourceTaniumTimerPng)
+	egg.SetIcon(resourceKrankyBearTimerPng)
 	eggimage := canvas.NewImageFromResource(certs[randomIndex])
 	eggimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found the Easter egg!\n"
@@ -126,7 +143,7 @@ func teapot(a fyne.App, w fyne.Window) {
 	var teapotvol = 10
 
 	tpwin := a.NewWindow(timerName + ": http: 418")
-	tpwin.SetIcon(resourceTaniumTimerPng)
+	tpwin.SetIcon(resourceKrankyBearTimerPng)
 	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
 	tpwinimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found another Easter egg!\n"

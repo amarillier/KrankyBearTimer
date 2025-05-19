@@ -2,8 +2,8 @@
   "RT_GROUP_ICON": {
     "APP": {
       "0000": [
-        "TaniumTimer256.png",
-        "TaniumTimer64.png"
+        "KrankyBearTimer256.png",
+        "KrankyBearTimer64.png"
       ]
     }
   },
@@ -42,15 +42,15 @@
         "info": {
           "0409": {
             "Comments": "",
-            "CompanyName": "Tanium (Allan Marillier)",
-            "FileDescription": "TaniumTimer",
+            "CompanyName": "Allan Marillier",
+            "FileDescription": "KrankyBearTimer",
             "FileVersion": "",
             "InternalName": "",
-            "LegalCopyright": "Tanium (Allan Marillier), 2024-2025",
+            "LegalCopyright": "Allan Marillier, 2024-2025",
             "LegalTrademarks": "",
             "OriginalFilename": "",
             "PrivateBuild": "",
-            "ProductName": "TaniumTimer",
+            "ProductName": "KrankyBearTimer",
             "ProductVersion": "0.7.1",
             "SpecialBuild": ""
           }

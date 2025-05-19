@@ -39,7 +39,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		teapot(a, settingsti)
 	} else {
 		settingsti = a.NewWindow(timerName + ": Settings")
-		settingsti.SetIcon(resourceTaniumTimerPng)
+		settingsti.SetIcon(resourceKrankyBearTimerPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: timer background does not currently auto refresh,	restart is required.
 	Time changes do take immediate effect, refresh of background is planned`
@@ -99,9 +99,9 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				log.Println("startatboot set to", value)
 			}
 			autoTimer := autostart.New(autostart.Options{
-				Label:       "com.tanium.TaniumTimer",
-				Name:        "TaniumTimer",
-				Description: "Tanium Timer",
+				Label:       "com.KB.KrankyBearTimer",
+				Name:        "KrankyBearTimer",
+				Description: "KrankyBear Timer",
 				Mode:        autostart.ModeUser,
 				Arguments:   []string{},
 			})
@@ -133,7 +133,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			case "taniumgrayteach":
 				bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
 			case "taniumtimer":
-				bg = canvas.NewImageFromResource(resourceTaniumTimerPng)
+				bg = canvas.NewImageFromResource(resourceKrankyBearTimerPng)
 			case "converge24":
 				bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
 			case "converge24a":
@@ -452,7 +452,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		teapot(a, settingsc)
 	} else {
 		settingsc = a.NewWindow(timerName + ": Clock Settings")
-		settingsc.SetIcon(resourceTaniumTimerPng)
+		settingsc.SetIcon(resourceKrankyBearTimerPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: clock display settings do not currently auto refresh, restart is required.
 	Displaying clock seconds can be much more CPU intensive than not!`
@@ -581,17 +581,17 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 
 			/*
 				autoClock := autostart.New(autostart.Options{
-					Label:       "com.tanium.TaniumClock",
-					Name:        "TaniumClock",
-					Description: "Tanium Clock",
+					Label:       "com.KB.KrankyBearClock",
+					Name:        "KrankyBearClock",
+					Description: "KrankyBear Clock",
 					Mode:        autostart.ModeUser,
 					Arguments:   []string{},
 				})
 			*/
 			autoClock := autostart.New(autostart.Options{
-				Label:       "com.tanium.TaniumTimer",
-				Name:        "TaniumTimer",
-				Description: "Tanium Timer",
+				Label:       "com.KB.KrankyBearTimer",
+				Name:        "KrankyBearTimer",
+				Description: "KrankyBear Timer",
 				Mode:        autostart.ModeUser,
 				Arguments:   []string{},
 			})
@@ -982,7 +982,7 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	} else {
 		s := settings.NewSettings()
 		settingsth = a.NewWindow(timerName + ": Theme Settings")
-		settingsth.SetIcon(resourceTaniumTimerPng)
+		settingsth.SetIcon(resourceKrankyBearTimerPng)
 
 		appearance := s.LoadAppearanceScreen(w)
 		tabs := container.NewAppTabs(

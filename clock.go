@@ -64,8 +64,8 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		col, _ = strconv.ParseUint(colors[3], 10, 8)
 		ua = uint8(col)
 
-		clock = a.NewWindow("Tanium Clock")
-		clock.SetIcon(resourceTaniumTimerPng)
+		clock = a.NewWindow("KrankyBear Clock")
+		clock.SetIcon(resourceKrankyBearTimerPng)
 
 		now := time.Now()
 		// timeFormat := `15:04:05`
@@ -219,7 +219,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
 		// clock.Resize(fyne.NewSize(300, 200))
 		// clock.ShowAndRun()  // for standalone clock app
-		clock.Show() // for func inside TaniumTimer
+		clock.Show() // for func inside KrankyBearTimer
 	}
 }
 
