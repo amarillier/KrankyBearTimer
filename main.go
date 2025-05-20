@@ -95,8 +95,8 @@ var abt fyne.Window
 var hlp fyne.Window
 
 // preferences stored via fyne preferences API land in
-// ~/Library/Preferences/fyne/com.KB.KrankyBearTimer/preferences.json
-// ~\AppData\Roaming\fyne\com.KB.KrankyBearTimer\preferences.json
+// ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
+// ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer\preferences.json
 // {"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3", "sound.default":1}
 
 func main() {
@@ -120,7 +120,7 @@ func main() {
 		imgDir = launchDir + "/Resources/Images"
 	}
 
-	a := app.NewWithID("com.KB.KrankyBearTimer")
+	a := app.NewWithID("com.github.amarillier.KrankyBearTimer")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	w := a.NewWindow(timerName)
 	w.SetIcon(resourceKrankyBearTimerPng)

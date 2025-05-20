@@ -99,9 +99,9 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 				log.Println("startatboot set to", value)
 			}
 			autoTimer := autostart.New(autostart.Options{
-				Label:       "com.KB.KrankyBearTimer",
+				Label:       "com.github.amarillier.KrankyBearTimer",
 				Name:        "KrankyBearTimer",
-				Description: "KrankyBear Timer",
+				Description: "Kranky Bear Timer",
 				Mode:        autostart.ModeUser,
 				Arguments:   []string{},
 			})
@@ -581,15 +581,15 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 
 			/*
 				autoClock := autostart.New(autostart.Options{
-					Label:       "com.KB.KrankyBearClock",
+					Label:       "com.github.amarillier.KrankyBearClock",
 					Name:        "KrankyBearClock",
-					Description: "KrankyBear Clock",
+					Description: "Kranky Bear Clock",
 					Mode:        autostart.ModeUser,
 					Arguments:   []string{},
 				})
 			*/
 			autoClock := autostart.New(autostart.Options{
-				Label:       "com.KB.KrankyBearTimer",
+				Label:       "com.github.amarillier.KrankyBearTimer",
 				Name:        "KrankyBearTimer",
 				Description: "KrankyBear Timer",
 				Mode:        autostart.ModeUser,

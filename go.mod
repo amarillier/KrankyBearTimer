@@ -1,4 +1,4 @@
-module KrankyBearTimer
+module github.com/amarillier/KrankyBearTimer
 
 go 1.23.2
 

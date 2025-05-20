@@ -1,8 +1,8 @@
 # KrankyBear Timer - personal fun / learning side project
 
 preferences stored via fyne preferences API land in
-~/Library/Preferences/fyne/com.KB.KrankyBearTimer/preferences.json
-~\AppData\Roaming\fyne\com.KB.KrankyBearimer\preferences.json
+~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
+~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearimer\preferences.json
 MacOS resource location (sounds and backgrounds): /Applications/KrankyBear Timer.app/Contents/Resources
 Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
