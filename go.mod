@@ -5,8 +5,9 @@ go 1.23.2
 require (
 	fyne.io/fyne/v2 v2.6.0
 	fyne.io/systray v1.11.0
+	github.com/Christian1984/go-update-checker v0.0.3
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
-	github.com/gopxl/beep/v2 v2.1.0
+	github.com/gopxl/beep/v2 v2.1.1
 	github.com/itchyny/volume-go v0.2.2
 	github.com/spiretechnology/go-autostart/v2 v2.0.0
 )
@@ -14,7 +15,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/ebitengine/oto/v3 v3.3.1 // indirect
+	github.com/ebitengine/oto/v3 v3.3.2 // indirect
 	github.com/ebitengine/purego v0.8.1 // indirect
 	github.com/fredbi/uri v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
@@ -31,6 +32,7 @@ require (
 	github.com/hack-pad/go-indexeddb v0.3.2 // indirect
 	github.com/hack-pad/safejs v0.1.0 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
+	github.com/hashicorp/go-version v1.3.0 // indirect
 	github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08 // indirect
 	github.com/jsummers/gobmp v0.0.0-20230614200233-a9de23ed2e25 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -40,6 +42,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rymdport/portal v0.4.1 // indirect
+	github.com/samhocevar/go-meltysynth v0.0.0-20230403180939-aca4a036cb16 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/testify v1.10.0 // indirect

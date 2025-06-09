@@ -63,9 +63,10 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		ubl = uint8(col)
 		col, _ = strconv.ParseUint(colors[3], 10, 8)
 		ua = uint8(col)
-
-		clock = a.NewWindow("KrankyBear Clock")
-		clock.SetIcon(resourceKrankyBearTimerPng)
+		clockName := appName + ": Clock"
+		// clock = a.NewWindow("Kranky Bear Clock")
+		clock = a.NewWindow(clockName)
+		clock.SetIcon(resourceKrankyBearPng)
 
 		now := time.Now()
 		// timeFormat := `15:04:05`

@@ -37,29 +37,31 @@ func playMp3(name string) {
 	<-done
 }
 
-/*
 func playMid(name string) {
-	f, err := os.Open(name)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// not working - needs to be fixed
+	return
+	/*
+		f, err := os.Open(name)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	streamer, format, err := midi.Decode(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer streamer.Close()
+		streamer, format, err := midi.Decode(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
-		done <- true
-	})))
+		done := make(chan bool)
+		speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+			done <- true
+		})))
 
-	<-done
+		<-done
+	*/
 }
-*/
 
 func playWav(name string) {
 	f, err := os.Open(name)

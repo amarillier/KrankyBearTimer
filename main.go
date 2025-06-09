@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -24,12 +25,14 @@ import (
 )
 
 const (
-	timerName    = "KrankyBear Timer"
-	timerVersion = "0.8.5" // see FyneApp.toml
-	timerAuthor  = "Allan Marillier"
+	// appName    = "KrankyBear Timer"
+	appVersion = "0.9.0" // see FyneApp.toml
+	appAuthor  = "Allan Marillier"
 )
 
-var timerCopyright = "(c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
+var appName = "Kranky Bear Timer"
+var appNameCustom = ""
+var appCopyright = "Copyright (c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var running = binding.NewBool()
 var bg fyne.Canvas
 var remain int
@@ -93,6 +96,9 @@ var startclock int
 var debug int = 0
 var abt fyne.Window
 var hlp fyne.Window
+var updt fyne.Window
+var timerWidth float64
+var timerHeight float64
 
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
@@ -122,12 +128,22 @@ func main() {
 
 	a := app.NewWithID("com.github.amarillier.KrankyBearTimer")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
-	w := a.NewWindow(timerName)
-	w.SetIcon(resourceKrankyBearTimerPng)
+	w := a.NewWindow(appName)
+	w.SetIcon(resourceKrankyBearPng)
 	w.SetPadded(false)
-	//w.SetCloseIntercept(func() {
-	//	a.Quit() // force quit, normal when somebody hits "x" to close
-	//})
+
+	w.SetCloseIntercept(func() {
+		width := w.Content().Size().Width
+		height := w.Content().Size().Height
+		timerWidth = float64(width)
+		timerHeight = float64(height)
+		a.Preferences().SetFloat("width.default", float64(width))
+		a.Preferences().SetFloat("height.default", float64(height))
+		w.Close()
+		// NEVER use a.Quit(), this hangs!
+		// a.Quit() // force quit, normal when somebody hits "x" to close
+	})
+
 	w.SetMaster()      // this sets this as master and closes all child windows
 	w.CenterOnScreen() // run centered on primary (laptop) display
 
@@ -138,6 +154,7 @@ func main() {
 		}
 		// add some default prefs that can be modified via settings
 		writeDefaultSettings(a)
+		a.Preferences().SetString("timername.default", "")
 	}
 	// get default timer settings from preferences
 	lunchTime = a.Preferences().IntWithFallback("lunch.default", 60*60)
@@ -146,7 +163,7 @@ func main() {
 	notify = a.Preferences().IntWithFallback("notify.default", 1)
 	sound = a.Preferences().IntWithFallback("sound.default", 1)
 	traytimer = a.Preferences().IntWithFallback("traytimer.default", 0)
-	timerbg = a.Preferences().StringWithFallback("background.default", "blue")
+	timerbg = a.Preferences().StringWithFallback("background.default", "board1")
 	endsnd = a.Preferences().StringWithFallback("endsound.default", "baseball.mp3")
 	oneminsnd = a.Preferences().StringWithFallback("oneminsound.default", "hero.mp3")
 	halfminsnd = a.Preferences().StringWithFallback("halfminsound.default", "sosumi.mp3")
@@ -178,6 +195,29 @@ func main() {
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
 	// "Mon Jan 2 15:04:05 MST 2006"
 	endTime, _ = time.Parse("15:04", "00:00") // set default midnight
+
+	// Allow for user defined custom timer name to brand e.g. Tanium Timer
+	appNameCustom = a.Preferences().StringWithFallback("timername.default", appName)
+	if appNameCustom != "" && appNameCustom != "default" {
+		// allow for Tanium branding, test also for Tanium backgrounds
+		// not allowed any other times
+		tanium := regexp.MustCompile(`^(?i)tanium`)
+		if tanium.MatchString(appNameCustom) {
+			// if it does not end with [Tt]imer, add it
+			// if !strings.HasSuffix(timerName, "Timer") && !strings.HasSuffix(timerName, "timer"){
+			timer := regexp.MustCompile(` (?i)timer`)
+			if !timer.MatchString(appNameCustom) {
+				appNameCustom += " Timer"
+			}
+		}
+		w.SetTitle(appNameCustom)
+	} else {
+		// if timer is not customized to Tanium, don't allow use of
+		// built in Tanium backgrounds, but user added are ok
+		if timerbg == "blue" || timerbg == "stone" || timerbg == "almond" || timerbg == "gray" {
+			timerbg = "board1" // reset default non Tanium
+		}
+	}
 
 	if len(os.Args) >= 2 {
 		log.Println("arg count:", len(os.Args))
@@ -211,12 +251,12 @@ func main() {
 	}
 
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearPng)
 		if startclock == 1 {
 			desktopclock(a)
 		}
-		systray.SetTooltip(timerName)
-		// systray.SetTitle(timerName)
+		systray.SetTooltip(appName)
+		//systray.SetTitle(timerName)
 		show := fyne.NewMenuItem("Show", func() {
 			w.Show()
 			w.Canvas().Focused()
@@ -238,17 +278,26 @@ func main() {
 			remain = -1 // don't notify when the user stops it
 		})
 		about := fyne.NewMenuItem("About", func() {
-			aboutText := timerName + " v " + timerVersion
-			aboutText += "\n" + timerCopyright
-			aboutText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
+			aboutText := appName + " v " + appVersion
+			aboutText += "\n" + appCopyright + ", written using Go and fyne GUI"
+			if appNameCustom != "" && appNameCustom != "default" {
+				aboutText += "\n\n(Currently rebranded as " + appNameCustom + ")"
+			}
+			aboutText += "\n\nCreated by " + appAuthor + ", using Go and fyne GUI"
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
-			aboutText += "\n\nAnd looking about about and help or settings too much might expose an easter egg!"
+			aboutText += "\n\nLooking about about and help or settings too too much might expose an easter egg!"
+
+			kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+			text := widget.NewLabel(aboutText)
+			kb.FillMode = canvas.ImageFillOriginal
+			content := container.NewHBox(kb, text)
 
 			if abt == nil {
-				abt = a.NewWindow(timerName + ": About")
-				abt.SetIcon(resourceKrankyBearTimerPng)
+				abt = a.NewWindow(appName + ": About")
+				abt.SetIcon(resourceKrankyBearPng)
 				abt.Resize(fyne.NewSize(50, 100))
-				abt.SetContent(widget.NewLabel(aboutText))
+				// abt.SetContent(widget.NewLabel(aboutText))
+				abt.SetContent(content)
 				abt.SetCloseIntercept(func() {
 					abt.Close()
 					abt = nil
@@ -262,10 +311,15 @@ func main() {
 		})
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
-				hlp = a.NewWindow(timerName + ": Help")
-				hlp.SetIcon(resourceKrankyBearTimerPng)
+				hlp = a.NewWindow(appName + ": Help")
+				hlp.SetIcon(resourceKrankyBearPng)
 				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
 It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
+
+NOTE: The timer main window can be rebranded from default Kranky Bear Timer to any name of your choice by setting
+the timername.default preference in the settings menu. This is a manual configuration only, not available 
+via settings, and will not be reset if the settings reset option is used.
+Trainer colleagues, this will also enable some additional built in custom specific backgrounds.
 
 - Ad hoc timer minimum is 5 minutes, with 5 minute increments
 	- NOTE ad hoc default is updated in preferences to current value any time it is changed
@@ -299,31 +353,23 @@ It also includes an optional desktop clock that can be set to auto start when th
 
 - Default settings will be created on first run if they don't exist
 `
-				hlpText += "\n" + timerName + " v " + timerVersion
-				hlpText += "\n" + timerCopyright
-				hlpText += "\n\n" + timerAuthor + ", using Go and fyne GUI"
+				hlpText += "\n" + appName + " v " + appVersion
+				hlpText += "\n" + appCopyright
+				hlpText += ", written using Go and fyne GUI"
 
 				plnText := `- Allow multiple time zones for clock, hh:mm only + offset
-- Allow multiple alarm times with user selectable tones for each
+- Allow multiple alarm times with user selectable tones for each, one time, recurring etc.
 - Allow settings set/save window locations to open timer/clock,
 	unfortunately not implemented in the fyne library yet
 - Open with timer window focused
 	- this is currently MacOS LaunchPad behavior, but only allows one app
 	- To run more than one simultaneously, in terminal: open -n -a KrankyBearTimer 
-- Add lab timer button
-- Add more selectable timer buttons - list? Readable from prefs
+- Possibly add lab timer button, or more selectable timer buttons, as a list, readable from prefs
 - Timer show progress bar? Cute but not really necessary, countdown is very clear
-- Center + / - below ad hoc button in canvas?
-- Reset timer name in window title to 'KrankyBear Timer' after user stop or timer end
 - Test if already running bring to front and exit, optional setting to allow multiple timers
 - Add pause/resume buttons to pause and resume a running timer
-- Allow selectable png /svg images as backgrounds
-	- Change window size and perspective h vs w to match background image sizes
-	- Possible: add png to svg conversion, or simply display png rather than svg
 - Allow optional always on top, save in prefs
-- Settings allow user selectable mid / wav
-- Add stop sounds button to stop the mp3/wav playing when enabled
-- Possibly add one or more clock alarms - one time, recurring etc.
+- Possibly add stop sound button to stop audio tones, mp3/wav playing when enabled and already started. 
 `
 
 				bugText := `
@@ -334,8 +380,7 @@ It also includes an optional desktop clock that can be set to auto start when th
 	- Times are effective immediately, but timer button times and background
 		do not currently refresh to new settings
 - Font type settings in preferences are currently ignored, the app uses system theme defaults. (Future planned update)
-- OpenGL drivers are required for some Windows systems, not a bug but a
-	specific library requirement that might not allow some to use this app
+- OpenGL drivers are required for some Windows systems, not a bug but a specific library requirement that might not allow some to use this app
 	`
 				link, err := url.Parse("https://github.com/amarillier/KrankyBearTimer/blob/main/license.txt")
 				if err != nil {
@@ -347,53 +392,52 @@ It also includes an optional desktop clock that can be set to auto start when th
  
 This application is "FREE Software". 
 
-This application is intended for any use by any individual, in any organization. This application
-provides no guarantees as to stability of operations or suitability for any
-purpose, but every attempt has been made to make this application reliable.
+This application is intended for any use by any individual, in any organization.
+
+This application provides no guarantees as to stability of operations or suitability 
+for any purpose, but every attempt has been made to make this application reliable.
+
+This application may not be sold, no money may be asked by anyone for provision of, or any services related to this application.
 
 Using this application (and reading this text) is considered acceptance of
 the terms of the License Agreement, and acknowledgement that this is FREE
 Software and the additional terms above.
+
+See https://github.com/amarillier/KrankyBearTimer/
 `
 
 				settingsText := `Settings are a separate tray menu item
-Settings contains defaults as below, which can be modified, and also reset to defaults:
-{"adhoc.default":300,"background.default":"blue",
-"bgcolor.default":"0,143,251,255","biobreak.default":600,
-"datecolor.default":"131,222,74,255","datefont.default":"arial",
-"datesize.default":24,"endsound.default":"baseball.mp3",
-"halfminsound.default":"sosumi.mp3","hourchime.default":1,
-"hourchimesound.default":"cuckoo.mp3","lunch.default":3600,
-"notify.default":1,"oneminsound.default":"hero.mp3","showdate.default":1,
-"showhr12.default":1,"showseconds.default":0,"showtimezone.default":1,
-"showutc.default":1,"sound.default":1,"startclock.default":1,
-"starttimer.default":0,"timecolor.default":"255,123,31,255",
-"timefont.default":"arial","timesize.default":48,
-"utccolor.default":"238,229,58,255","utcfont.default":"arial",
-"utcsize.default":18}
+Settings contains defaults, which can be modified as well as reset to defaults in Settings menus. 
+
+One exception is the default.timername which can be used to rebrand the timer main window with a custom name.
+The timer name is set manually in the preferences file, and will not be reset if the settings are reset.
+See below for the preferences.json file location.
 
 KrankyBear Timer looks for directories named Resources/Images and Resources/Sounds,
-containing images and sounds.
+containing optional user provided images and sounds.
 
 IMAGES:
-Background blue refers to a compiled in resource with blue background. 
-Other supported compiled in backgrounds are: stone, almond, converge24 and converge24a
-Future additions will allow selecting images of your choice, png, SVG,
-	jpg maybe and specifying size - height / width. Manual window resizing
-	is already possible
+Some background images are included, compiled into the app, user selectable
+.png and .jpg images can also be placed in the app's Resources/Images directory
+
+App window size is detected and automatically saved in preferences when exiting the app to preserve preferences if the window is resized.
 
 SOUNDS:
 Built in tones include 'ding', 'down', 'up', and 'updown'. These are always available
 	and will be listed first in sound selectors
-The sounds directory as distributed also contains a number of other .mp3 files
+The Resources/Sounds directory as distributed also contains a number of other .mp3 files
 including baseball.mp3, grandfatherclock.mp3, hero.mp3, pinball.mp3, sosumi.mp3
 When selecting sounds, the sound will be played as a preview when possible.
 When selected sounds are not present (removed from Sounds), KrankyBear Timer defaults
 	to playing built in tones ding, down, up or updown
-Future additions will allow also choosing from any .mid or .wav sound files of your
-	choice if located in the Sounds directory
+Future additions may allow also choosing from other sound file types of your choice if located in the Sounds directory
 
-MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
+Resources directory locations:
+MacOS: /Applications/KrankyBearTimer.app/Contents/Resources
+Windows: \Program Files/KrankyBearTimer\Contents\Resources
+preferences.json file location:
+MacOS: ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
+Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preferences.json
 `
 				lic := widget.NewLabel(licText)
 				tabs := container.NewDocTabs(
@@ -434,10 +478,39 @@ MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
 				clock.RequestFocus()
 			}
 		})
-		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, help, settingsTimer, settingsClock, settingsTheme)
+		updtchk := fyne.NewMenuItem("Check for update", func() {
+			updtmsg := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
+			if updt == nil {
+				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+				kb.FillMode = canvas.ImageFillOriginal
+				text := widget.NewLabel(updtmsg)
+				content := container.NewHBox(kb, text)
+				updt = a.NewWindow(appName + ": Update Check")
+				updt.SetIcon(resourceKrankyBearPng)
+				updt.Resize(fyne.NewSize(50, 100))
+				// updt.SetContent(widget.NewLabel(updtmsg))
+				updt.SetContent(content)
+				updt.SetCloseIntercept(func() {
+					updt.Close()
+					updt = nil
+				})
+				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
+				updt.Show()
+				if !strings.Contains(updtmsg, "You are running the latest") {
+					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
+						playBeep("up")
+					} else {
+						playMp3(sndDir + "//KrankyBearGrowl.mp3") // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
+					}
+				}
+			} else {
+				updt.RequestFocus()
+			}
+		})
+		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, updtchk, help, settingsTimer, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
-		systray.SetTooltip(timerName)
+		desk.SetSystemTrayIcon(resourceKrankyBearPng)
+		systray.SetTooltip(appName)
 
 		// Menu items
 		// compile / run with syntax below to force Mac to do menus like Windows
@@ -446,6 +519,12 @@ MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
 		// go build -tags no_native_menus .
 		// go run -tags no_native_menus .
 		quit := fyne.NewMenuItem("Quit", func() {
+			width := w.Content().Size().Width
+			height := w.Content().Size().Height
+			timerWidth = float64(width)
+			timerHeight = float64(height)
+			a.Preferences().SetFloat("width.default", float64(width))
+			a.Preferences().SetFloat("height.default", float64(height))
 			a.Quit()
 		})
 		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
@@ -498,11 +577,7 @@ MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
 	})
 	endset.Importance = widget.WarningImportance // orange
 
-	//quit := widget.NewButton("Quit", func() {
-	//	a.Quit()
-	//})
-	// quit.Importance = widget.HighImportance  // red
-	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset) //, quit)
+	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset)
 
 	lunch := widget.NewButton("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
 		startTimer(lunchTime, "Lunch", w.Canvas(), w)
@@ -534,31 +609,49 @@ MacOS resource location: /Applications/KrankyBear Timer.app/Contents/Resources
 
 	content := container.NewCenter(container.NewVBox(container.NewGridWithColumns(2, biobreak, lunch, adhocbtn, endtime), lessmoreRow))
 
-	bg := canvas.NewImageFromResource(resourceTaniumTrainBluePng)
-	// bg := canvas.NewImageFromFile("./Resources/Images/notUsed/TaniumGrayTeach.png")
-	switch timerbg {
-	case "taniumtimer2":
-		bg = canvas.NewImageFromResource(resourceTaniumTimer2Png)
-	case "blue":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
-		// bg = canvas.NewImageFromFile("./Resources/Images/notUsed/TaniumGrayTeach.png")
-	case "stone":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainStonePng)
-	case "almond":
-		bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondPng)
-	case "taniumgrayteach":
-		bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
-	case "taniumtimer":
-		bg = canvas.NewImageFromResource(resourceKrankyBearTimerPng)
-	case "converge24":
-		bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
-	case "converge24a":
-		bg = canvas.NewImageFromResource(resourceTaniumConverge2024aPng)
-	default:
-		bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+	bg := canvas.NewImageFromResource(resourceSchoolBoard1Png)
+	if strings.HasSuffix(timerbg, ".png") || strings.HasSuffix(timerbg, ".jpg") {
+		// if it's a png or jpg file specified, test if it exists and use it
+		// otherwise use resource based image
+		if checkFileExists(imgDir + "/" + timerbg) {
+			bg = canvas.NewImageFromFile(imgDir + "/" + timerbg)
+		} else {
+			bg = canvas.NewImageFromResource(resourceSchoolBoard1Png)
+		}
+	} else {
+		switch timerbg {
+		case "board1":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard1Png)
+		case "board2":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard2Png)
+		case "board3":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard3Png)
+		case "board4":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard4Png)
+		case "board5":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard5Png)
+		case "board6":
+			bg = canvas.NewImageFromResource(resourceSchoolBoard6Png)
+		case "blue":
+			bg = canvas.NewImageFromResource(resourceTBluePng)
+		case "stone":
+			bg = canvas.NewImageFromResource(resourceTStonePng)
+		case "almond":
+			bg = canvas.NewImageFromResource(resourceTAlmondPng)
+		case "gray":
+			bg = canvas.NewImageFromResource(resourceTGrayTeachPng)
+		default:
+			bg = canvas.NewImageFromResource(resourceSchoolBoard1Png)
+		}
 	}
-	w.Resize(fyne.NewSize(content.MinSize().Width*1.8, content.MinSize().Height*1.8))
+
+	width := a.Preferences().FloatWithFallback("width.default", float64(content.MinSize().Width*1.8))
+	height := a.Preferences().FloatWithFallback("height.default", float64(content.MinSize().Height*1.8))
+	w.Resize(fyne.NewSize(float32(width), float32(height)))
+	// w.Resize(fyne.NewSize(content.MinSize().Width*1.8, content.MinSize().Height*1.8))
+	// w.Resize(fyne.NewSize(content.MinSize().Width*2.2, content.MinSize().Height*2.2))
 	bg.FillMode = canvas.ImageFillContain
+	// bg.FillMode = canvas.ImageFillOriginal
 	bg.Translucency = 0.5 // 0.85
 	w.SetContent(container.NewStack(
 		bg,
@@ -587,13 +680,15 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	if busy {
 		return
 	}
-	w.SetTitle(timerName + ": " + name)
+	w.SetTitle(appName + ": " + name)
 	running.Set(true)
+
 	if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
-		systray.SetTooltip(timerName)
+		desk.SetSystemTrayIcon(resourceKrankyBearPng)
+		systray.SetTooltip(appName)
 		// systray.SetTitle(timerName)
 	}
+
 	ticker := widget.NewRichText()
 	fyne.Do(func() {
 		updateTime(ticker, remain)
@@ -610,10 +705,10 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	p.Resize(fyne.NewSize(w.Canvas().Size().Width*0.5, w.Canvas().Size().Height*0.5))
 	stop.OnTapped = func() {
 		remain = -1 // don't notify
-		w.SetTitle(timerName)
+		w.SetTitle(appName)
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
-			systray.SetTooltip(timerName)
+			desk.SetSystemTrayIcon(resourceKrankyBearPng)
+			systray.SetTooltip(appName)
 			systray.SetTitle("")
 			stop.Disable()
 		}
@@ -666,8 +761,9 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			time.Sleep(time.Second)
 		}
 		fyne.Do(func() {
-			w.SetTitle(timerName)
+			w.SetTitle(appName)
 		})
+
 		running.Set(false)
 		if remain == 0 {
 			updateTime(ticker, remain)
@@ -698,8 +794,8 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			}
 		}
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearTimerPng)
-			systray.SetTooltip(timerName)
+			desk.SetSystemTrayIcon(resourceKrankyBearPng)
+			systray.SetTooltip(appName)
 			systray.SetTitle("")
 		}
 		p.Hide()

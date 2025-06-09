@@ -6,14 +6,20 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"regexp"
+	"runtime"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	updatechecker "github.com/Christian1984/go-update-checker"
 	"github.com/itchyny/volume-go"
 )
 
@@ -97,11 +103,20 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	muted, _ := volume.GetMuted()
 	vol, _ := volume.GetVolume()
 	var eggvol = 15
+	var certs []fyne.Resource
 
-	certs := []fyne.Resource{resourceTcnPng, resourceTccPng, resourceTcbePng}
+	// allow for Tanium branding, show certs
+	// improve this, and add other Kranky Bear images
+	processName := "^tanium.*"
+	processRegex := regexp.MustCompile(`(?i)^tanium`)
+	if processRegex.MatchString(appNameCustom) || isProcessRunning(processName) {
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceTcnPng, resourceKrankyBearPng, resourceTccPng, resourceKrankyBearPng, resourceTcbePng, resourceKrankyBearPng}
+	} else {
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceHttp418Png, resourceKrankyBearPng}
+	}
 	randomIndex := rand.Intn(len(certs))
-	egg := a.NewWindow(timerName + ": easter egg")
-	egg.SetIcon(resourceKrankyBearTimerPng)
+	egg := a.NewWindow(appName + ": easter egg")
+	egg.SetIcon(resourceKrankyBearPng)
 	eggimage := canvas.NewImageFromResource(certs[randomIndex])
 	eggimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found the Easter egg!\n"
@@ -142,14 +157,20 @@ func teapot(a fyne.App, w fyne.Window) {
 	vol, _ := volume.GetVolume()
 	var teapotvol = 10
 
-	tpwin := a.NewWindow(timerName + ": http: 418")
-	tpwin.SetIcon(resourceKrankyBearTimerPng)
+	link, err := url.Parse("https://www.rfc-editor.org/rfc/rfc2324.html")
+	if err != nil {
+		fyne.LogError("Could not parse URL", err)
+	}
+	hyperlink := widget.NewHyperlink("What is http 418? https://www.rfc-editor.org/rfc/rfc2324.html", link)
+	hyperlink.Alignment = fyne.TextAlignLeading
+	tpwin := a.NewWindow(appName + ": http: 418")
+	tpwin.SetIcon(resourceKrankyBearPng)
 	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
 	tpwinimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found another Easter egg!\n"
 
 	tpwintext := widget.NewLabel(text)
-	content := container.NewVBox(tpwinimage, tpwintext)
+	content := container.NewVBox(tpwinimage, tpwintext, hyperlink)
 	tpwin.SetContent(content)
 	// tpwin.CenterOnScreen() // run centered on primary (laptop) display
 	// tpwin.Show()
@@ -227,12 +248,45 @@ func dadjoke() string {
 		"Why did the math book look sad?\nBecause it had too many problems",
 		"I was going to cook alligator tonight, but I only have a crocpot",
 		"A Japanese gardener asked me what I know about bonsai trees.\nI said, 'Very little'",
-		"A horse walked into a bar and ordered a beer. The bartender said 'You come in here often, do you think you might be an alcoholic?' The horse said 'I don'''t think I am, then vanishes from existence. You see, this joke is about Descartes, 'I think, therefore I am'. But to have explained that first would'''ve put Descartes before the horse.",
+		"A horse walked into a bar and ordered a beer. The bartender said 'You come in here often, do you think you might be an alcoholic?'\nThe horse said 'I don'''t think I am, then vanished from existence.\nYou see, this joke is about Descartes, 'I think, therefore I am'. But to have explained that first would'''ve put Descartes before the horse.",
 		"Davey Crocket was the only man ever to have three ears.\nA left ear, a right ear, and a wild front ear",
 	}
 	randomIndex := rand.Intn(len(jokes))
 	joke := jokes[randomIndex]
 	return (joke)
+}
+
+func isProcessRunning(processRegex string) bool {
+	var cmd *exec.Cmd
+	// if os.PathSeparator == '\\' { // Windows
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("tasklist")
+	} else { // Unix-based systems
+		cmd = exec.Command("pgrep", "-fl", processRegex) // "-fl" to show full process name
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return false
+	}
+
+	// Compile regex with case-insensitivity
+	re := regexp.MustCompile(`(?i)` + processRegex)
+	for _, line := range strings.Split(string(output), "\n") {
+		if re.MatchString(line) {
+			return true
+		}
+	}
+	return false
+}
+
+func updateChecker(repoOwner string, repo string, repoName string, repodl string) string {
+	// uc := updatechecker.New("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "", 1, false)
+	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 1, false)
+	uc.CheckForUpdate(appVersion)
+	// uc.PrintMessage()
+	updtmsg := uc.Message
+	return updtmsg
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

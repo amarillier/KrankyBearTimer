@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,7 @@ var muteonbutton *widget.Button
 var muteoffbutton *widget.Button
 var muteonlabel string
 var muteofflabel string
+var bgImage []string
 
 func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	// settings window
@@ -38,8 +40,8 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingsti.Show()
 		teapot(a, settingsti)
 	} else {
-		settingsti = a.NewWindow(timerName + ": Settings")
-		settingsti.SetIcon(resourceKrankyBearTimerPng)
+		settingsti = a.NewWindow(appName + ": Settings")
+		settingsti.SetIcon(resourceKrankyBearPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: timer background does not currently auto refresh,	restart is required.
 	Time changes do take immediate effect, refresh of background is planned`
@@ -47,6 +49,15 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		setText.TextStyle = fyne.TextStyle{Bold: true}
 		todoText := widget.NewLabel("Still to be added: allow .mid and .wav sounds as well as selectable background images in addition to built in images")
 		todoText.TextStyle = fyne.TextStyle{Italic: true, Bold: true}
+
+		pngfiles, err := listMatchingFiles(imgDir, "*.png")
+		if err != nil {
+			log.Fatal(err)
+		}
+		jpgfiles, err := listMatchingFiles(imgDir, "*.jpg")
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		mp3files, err := listMatchingFiles(sndDir, "*.mp3")
 		if err != nil {
@@ -115,31 +126,45 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			a.Preferences().SetInt("starttimer.default", starttimer)
 		})
-		background := widget.NewSelect([]string{"almond", "blue", "stone", "taniumgrayteach", "converge24", "converge24a", "taniumtimer2"}, func(value string) {
+		tanium := regexp.MustCompile(`^(?i)tanium`)
+		if tanium.MatchString(appNameCustom) {
+			// if Tanium branded, add selectable Tanium backgrounds
+			bgImage = []string{"almond", "blue", "stone", "gray", "board1", "board2", "board3", "board4", "board5", "board6"}
+		} else {
+			bgImage = []string{"board1", "board2", "board3", "board4", "board5", "board6"}
+		}
+		bgImage = append(bgImage, pngfiles...)
+		bgImage = append(bgImage, jpgfiles...)
+		// background := widget.NewSelect([]string{"almond", "blue", "stone", "gray"}, func(value string) {
+		background := widget.NewSelect(bgImage, func(value string) {
 			if debug == 1 {
 				log.Println("background set to", value)
 			}
 			timerbg = value
-			bg := canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+			bg := canvas.NewImageFromResource(resourceSchoolBoard1Png)
 			switch timerbg {
-			case "taniumtimer2":
-				bg = canvas.NewImageFromResource(resourceTaniumTimer2Png)
+			case "board1":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard1Png)
+			case "board2":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard2Png)
+			case "board3":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard3Png)
+			case "board4":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard4Png)
+			case "board5":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard5Png)
+			case "board6":
+				bg = canvas.NewImageFromResource(resourceSchoolBoard6Png)
 			case "blue":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+				bg = canvas.NewImageFromResource(resourceTBluePng)
 			case "stone":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainStonePng)
+				bg = canvas.NewImageFromResource(resourceTStonePng)
 			case "almond":
-				bg = canvas.NewImageFromResource(resourceTaniumTrainAlmondPng)
-			case "taniumgrayteach":
-				bg = canvas.NewImageFromResource(resourceTaniumGrayTeachPng)
-			case "taniumtimer":
-				bg = canvas.NewImageFromResource(resourceKrankyBearTimerPng)
-			case "converge24":
-				bg = canvas.NewImageFromResource(resourceTaniumConverge2024Png)
-			case "converge24a":
-				bg = canvas.NewImageFromResource(resourceTaniumConverge2024aPng)
+				bg = canvas.NewImageFromResource(resourceTAlmondPng)
+			case "gray":
+				bg = canvas.NewImageFromResource(resourceTGrayTeachPng)
 			default:
-				bg = canvas.NewImageFromResource(resourceTaniumTrainBluePng)
+				bg = canvas.NewImageFromResource(resourceSchoolBoard1Png)
 			}
 			bg.FillMode = canvas.ImageFillContain
 			bg.Translucency = 0.5 // 0.85
@@ -223,7 +248,7 @@ func makeSettingsTimer(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			soundalerts.SetChecked(true)
 			systraytimer.SetChecked(false)
 			startatboot.SetChecked(false)
-			timerbg = "blue"
+			timerbg = "board1"
 			endsnd = "baseball.mp3"
 			oneminsnd = "hero.mp3"
 			halfminsnd = "sosumi.mp3"
@@ -401,6 +426,7 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetInt("utcsize.default", 18)
 	a.Preferences().SetString("hourchimesound.default", "cuckoo.mp3")
 	a.Preferences().SetInt("startclock.default", 1)
+	// a.Preferences().SetString("timername.default","")
 	// example prefs:
 	//{"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3"}
 }
@@ -451,8 +477,8 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		settingsc.Show()
 		teapot(a, settingsc)
 	} else {
-		settingsc = a.NewWindow(timerName + ": Clock Settings")
-		settingsc.SetIcon(resourceKrankyBearTimerPng)
+		settingsc = a.NewWindow(appName + ": Clock Settings")
+		settingsc.SetIcon(resourceKrankyBearPng)
 		settingsText := `All updates are applied / saved immediately.
 	Note: clock display settings do not currently auto refresh, restart is required.
 	Displaying clock seconds can be much more CPU intensive than not!`
@@ -981,8 +1007,8 @@ func makeSettingsTheme(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		teapot(a, settingsth)
 	} else {
 		s := settings.NewSettings()
-		settingsth = a.NewWindow(timerName + ": Theme Settings")
-		settingsth.SetIcon(resourceKrankyBearTimerPng)
+		settingsth = a.NewWindow(appName + ": Theme Settings")
+		settingsth.SetIcon(resourceKrankyBearPng)
 
 		appearance := s.LoadAppearanceScreen(w)
 		tabs := container.NewAppTabs(

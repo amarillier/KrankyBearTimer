@@ -4,6 +4,8 @@ fyne.io/systray v1.11.0 h1:D9HISlxSkx+jHSniMBR6fCFOUjk1x/OOOJLa9lJYAKg=
 fyne.io/systray v1.11.0/go.mod h1:RVwqP9nYMo7h5zViCBHri2FgjXF7H2cub7MAq4NSoLs=
 github.com/BurntSushi/toml v1.4.0 h1:kuoIxZQy2WRRk1pttg9asf+WVv6tWQuBNVmK8+nqPr0=
 github.com/BurntSushi/toml v1.4.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
+github.com/Christian1984/go-update-checker v0.0.3 h1:a1FAbgD+39arSavXMmbgO9z8aDbqMyUPoxIhg/Xbpyk=
+github.com/Christian1984/go-update-checker v0.0.3/go.mod h1:Up9ZfTcgLcnmENqGaIW4n4nK7xN0SXL9bFZUcRycOSA=
 github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7 h1:yy4w3Aad5l04nMMCzawp4pocOKzjYCjT+eCtQ1EmumA=
 github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7/go.mod h1:Iw6IxrNMy+KMkjVTbKShhQTeFFEKGj6j9v47xdlxjds=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
@@ -11,6 +13,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ebitengine/oto/v3 v3.3.1 h1:d4McwGQuXOT0GL7bA5g9ZnaUEIEjQvG3hafzMy+T3qE=
 github.com/ebitengine/oto/v3 v3.3.1/go.mod h1:MZeb/lwoC4DCOdiTIxYezrURTw7EvK/yF863+tmBI+U=
+github.com/ebitengine/oto/v3 v3.3.2 h1:VTWBsKX9eb+dXzaF4jEwQbs4yWIdXukJ0K40KgkpYlg=
+github.com/ebitengine/oto/v3 v3.3.2/go.mod h1:MZeb/lwoC4DCOdiTIxYezrURTw7EvK/yF863+tmBI+U=
 github.com/ebitengine/purego v0.8.1 h1:sdRKd6plj7KYW33EH5As6YKfe8m9zbN9JMrOjNVF/BE=
 github.com/ebitengine/purego v0.8.1/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/felixge/fgprof v0.9.3 h1:VvyZxILNuCiUCSXtPtYmmtGvb65nqXh2QFWc0Wpf2/g=
@@ -46,6 +50,8 @@ github.com/google/pprof v0.0.0-20211214055906-6f57359322fd h1:1FjCyPC+syAzJ5/2S8
 github.com/google/pprof v0.0.0-20211214055906-6f57359322fd/go.mod h1:KgnwoLYCZ8IQu3XUZ8Nc/bM9CCZFOyjUNOSygVozoDg=
 github.com/gopxl/beep/v2 v2.1.0 h1:Jv95iHw3aNWoAa/J78YyXvOvMHH2ZGeAYD5ug8tVt8c=
 github.com/gopxl/beep/v2 v2.1.0/go.mod h1:sQvj2oSsu8fmmDWH3t0DzIe0OZzTW6/TJEHW4Ku+22o=
+github.com/gopxl/beep/v2 v2.1.1 h1:6FYIYMm2qPAdWkjX+7xwKrViS1x0Po5kDMdRkq8NVbU=
+github.com/gopxl/beep/v2 v2.1.1/go.mod h1:ZAm9TGQ9lvpoiFLd4zf5B1IuyxZhgRACMId1XJbaW0E=
 github.com/hack-pad/go-indexeddb v0.3.2 h1:DTqeJJYc1usa45Q5r52t01KhvlSN02+Oq+tQbSBI91A=
 github.com/hack-pad/go-indexeddb v0.3.2/go.mod h1:QvfTevpDVlkfomY498LhstjwbPW6QC4VC/lxYb0Kom0=
 github.com/hack-pad/safejs v0.1.0 h1:qPS6vjreAqh2amUqj4WNG1zIw7qlRQJ9K10eDKMCnE8=
@@ -53,6 +59,8 @@ github.com/hack-pad/safejs v0.1.0/go.mod h1:HdS+bKF1NrE72VoXZeWzxFOVQVUSqZJAG0xN
 github.com/hajimehoshi/go-mp3 v0.3.4 h1:NUP7pBYH8OguP4diaTZ9wJbUbk3tC0KlfzsEpWmYj68=
 github.com/hajimehoshi/go-mp3 v0.3.4/go.mod h1:fRtZraRFcWb0pu7ok0LqyFhCUrPeMsGRSVop0eemFmo=
 github.com/hajimehoshi/oto/v2 v2.3.1/go.mod h1:seWLbgHH7AyUMYKfKYT9pg7PhUu9/SisyJvNTT+ASQo=
+github.com/hashicorp/go-version v1.3.0 h1:McDWVJIU/y+u1BRV06dPaLfLCaT7fUTJLp5r04x7iNw=
+github.com/hashicorp/go-version v1.3.0/go.mod h1:fltr4n8CU8Ke44wwGCBoEymUuxUHl09ZGVZPK5anwXA=
 github.com/itchyny/volume-go v0.2.2 h1:v+FX58TV+g/IelerseqMO1LmdRoIuSS2uB26Ggljzx0=
 github.com/itchyny/volume-go v0.2.2/go.mod h1:0JOgisElMS/72B2DI4ha8CH2JXPUPTbe1agjk8jTU3s=
 github.com/jeandeaual/go-locale v0.0.0-20241217141322-fcc2cadd6f08 h1:wMeVzrPO3mfHIWLZtDcSaGAe2I4PW9B/P5nMkRSwCAc=
@@ -79,6 +87,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rymdport/portal v0.4.1 h1:2dnZhjf5uEaeDjeF/yBIeeRo6pNI2QAKm7kq1w/kbnA=
 github.com/rymdport/portal v0.4.1/go.mod h1:kFF4jslnJ8pD5uCi17brj/ODlfIidOxlgUDTO5ncnC4=
+github.com/samhocevar/go-meltysynth v0.0.0-20230403180939-aca4a036cb16 h1:slzh3BWJ6FyMM8gkDzDwHz+gjU4+82ldB6oPyYi82Ho=
+github.com/samhocevar/go-meltysynth v0.0.0-20230403180939-aca4a036cb16/go.mod h1:J+GU4sgu3oAPHCceoTIXNKzFHSybNhF/LyFkWZlqhvE=
 github.com/spiretechnology/go-autostart/v2 v2.0.0 h1:YFuQsqRq3u/jZZH8oJv8T66MzYjzCQI4geO7QnjMcm8=
 github.com/spiretechnology/go-autostart/v2 v2.0.0/go.mod h1:o2xsRqTunhejDCZoMc4DpiNNPSjBtGXeIwKjeF2R0MM=
 github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c h1:km8GpoQut05eY3GiYWEedbTT0qnSxrCjsVbb7yKY1KE=

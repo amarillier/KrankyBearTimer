@@ -2,9 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KrankyBearTimer"
-#define MyAppVersion "0.8.5"
+#define MyAppVersion "0.9.0"
 #define MyAppPublisher "Allan Marillier, 2024-2025"
-#define MyAppURL "https://www.KrankyBear.com/"
+#define MyAppURL "https://github.com/amarillier/KrankyBearTimer"
 #define MyAppExeName "KrankyBearTimer.exe"
 #define MyAppAssocName MyAppName + ""
 #define MyAppAssocExt ".exe"
@@ -36,7 +36,7 @@ LicenseFile=C:\Allan\Source\go\KrankyBearTimer\license.txt
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\installers
 OutputBaseFilename=KrankyBearTimerSetup
-SetupIconFile=C:\Allan\Source\go\KrankyBearTimer\KrankyBearTimer.ico
+SetupIconFile=C:\Allan\Source\go\KrankyBearTimer\KrankyBear.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -45,7 +45,8 @@ WizardStyle=modern
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; 
+; Flags: unchecked - create a desktop icon by default
 Name: "startup"; Description: "Automatically start on login (or enable later via settings)"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
@@ -68,3 +69,5 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
+[UninstallRun]
+Filename: "{cmd}"; Parameters: "/C ""taskkill /im {#MyAppExeName} /f /t"
