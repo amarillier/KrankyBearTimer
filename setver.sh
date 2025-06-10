@@ -37,3 +37,9 @@ sed -i '' "s/ProductVersion\":.*/ProductVersion\": \"$ver\",/" ./winres/winres.j
 
 echo "Info.plist"
 sed -i '' "s/<string>v .*<\/string>/<string>v $ver<\/string>/" ./KrankyBearTimer.app/Contents/Info.plist
+
+echo "Update license.txt and ReleaseNotes.txt"
+cp license.txt Resources
+cp ReleaseNotes.txt Resources
+cp license.txt KrankyBearTimer.app/Contents/Resources
+cp ReleaseNotes.txt KrankyBearTimer.app/Contents/Resources

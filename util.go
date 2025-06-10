@@ -282,7 +282,7 @@ func isProcessRunning(processRegex string) bool {
 
 func updateChecker(repoOwner string, repo string, repoName string, repodl string) string {
 	// uc := updatechecker.New("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "", 1, false)
-	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 1, false)
+	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 0, false)
 	uc.CheckForUpdate(appVersion)
 	// uc.PrintMessage()
 	updtmsg := uc.Message
