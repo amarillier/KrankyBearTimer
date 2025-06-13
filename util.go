@@ -19,7 +19,8 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	updatechecker "github.com/Christian1984/go-update-checker"
+
+	updatechecker "github.com/amarillier/go-update-checker"
 	"github.com/itchyny/volume-go"
 )
 
@@ -55,7 +56,7 @@ func daysUntil(targetDate string) (int, error) {
 // https://rollbar.com/blog/golang-error-logging-guide/
 func logInit() {
 	// typically written to Resources/...
-	file, err := os.OpenFile("KrankyBearTimer0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(processName+"0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -85,17 +86,17 @@ func lineCounter(r io.Reader) (int, error) {
 }
 
 func logRotate() {
-	if checkFileExists("KrankyBearTimer2.txt") {
-		f := os.Remove("KrankyBearTimer2.txt")
+	if checkFileExists(processName + "2.txt") {
+		f := os.Remove(processName + "2.txt")
 		if f != nil {
-			ErrorLog.Println("Error attempting to remove KrankyBearTimer2.txt")
+			ErrorLog.Printf("Error attempting to remove %s", processName+"2.txt")
 		}
 	}
-	if checkFileExists("KrankyBearTimer1.txt") {
-		os.Rename("KrankyBearTimer1.txt", "KrankyBearTimer2.txt")
+	if checkFileExists(processName + "1.txt") {
+		os.Rename(processName+"1.txt", processName+"2.txt")
 	}
-	if checkFileExists("KrankyBearTimer0.txt") {
-		os.Rename("KrankyBearTimer0.txt", "KrankyBearTimer1.txt")
+	if checkFileExists(processName + "0.txt") {
+		os.Rename(processName+"0.txt", processName+"1.txt")
 	}
 }
 
@@ -114,6 +115,7 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	} else {
 		certs = []fyne.Resource{resourceKrankyBearPng, resourceHttp418Png, resourceKrankyBearPng}
 	}
+
 	randomIndex := rand.Intn(len(certs))
 	egg := a.NewWindow(appName + ": easter egg")
 	egg.SetIcon(resourceKrankyBearPng)
@@ -280,13 +282,13 @@ func isProcessRunning(processRegex string) bool {
 	return false
 }
 
-func updateChecker(repoOwner string, repo string, repoName string, repodl string) string {
+func updateChecker(repoOwner string, repo string, repoName string, repodl string) (string, bool) {
 	// uc := updatechecker.New("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "", 1, false)
 	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 0, false)
 	uc.CheckForUpdate(appVersion)
 	// uc.PrintMessage()
 	updtmsg := uc.Message
-	return updtmsg
+	return updtmsg, uc.UpdateAvailable
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

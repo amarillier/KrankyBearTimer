@@ -1,12 +1,12 @@
 module github.com/amarillier/KrankyBearTimer
 
-go 1.23.2
+go 1.24.2
 
 require (
 	fyne.io/fyne/v2 v2.6.0
 	fyne.io/systray v1.11.0
-	github.com/Christian1984/go-update-checker v0.0.3
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
+	github.com/amarillier/go-update-checker v0.0.3
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/itchyny/volume-go v0.2.2
 	github.com/spiretechnology/go-autostart/v2 v2.0.0
@@ -42,7 +42,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rymdport/portal v0.4.1 // indirect
-	github.com/samhocevar/go-meltysynth v0.0.0-20230403180939-aca4a036cb16 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
 	github.com/stretchr/testify v1.10.0 // indirect

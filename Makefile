@@ -8,6 +8,7 @@ hello:
 	echo "make vet to vet the code"
 	echo "make run to run the main.go"
 	echo "make build to build for the current system"
+	echo "make buildsupported to build for the currently supported systems - MacAMD, MacARM and WinAMD"
 	# echo "	make linuxamd64"
 	# echo "	make linuxarm64"
 	echo "	make macamd64"
@@ -28,7 +29,14 @@ lint:
 	~/go/bin/golint ./...
 .PHONY:lint
 
-vet: fmt
+tidy:
+	go mod tidy
+	go mod vendor
+	go mod verify
+.PHONY:tidy
+
+vet: 
+	fmt
 	go vet ...
 .PHONY:vet
 
@@ -43,6 +51,9 @@ build:
 	./setIcon.sh KrankyBear.png KrankyBearTimer
 .PHONY:build
 
+ios:
+	GOOS=ios CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/ios/
+.PHONY:ios
 
 linuxamd64:
 	echo "This doesn't work right now on Mac ARM or Win AMD64 - no action"
@@ -55,13 +66,15 @@ linuxarm64:
 .PHONY:linuxarm64
 
 macamd64:
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
-	./setIcon.sh KrankyBear.png bin/MacOSAMD64/KrankyBearTimer
+	# GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
+	# ./setIcon.sh KrankyBear.png bin/MacOSAMD64/KrankyBearTimer
+	./dmgbuildIntel.sh
 .PHONY:macamd64
 
 macarm64:
-	GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
-	./setIcon.sh KrankyBear.png bin/MacOSARM64/KrankyBearTimer
+	# GOOS=darwin GOARCH=arm64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSARM64/
+	# ./setIcon.sh KrankyBear.png bin/MacOSARM64/KrankyBearTimer
+	./dmgbuildARM.sh
 .PHONY:macarm64
 
 winamd64:
@@ -79,6 +92,9 @@ winarm64:
 buildall: linuxamd64 linuxarm64 macamd64 macarm64 winamd64 winarm64
 .PHONY:buildall
 
+buildsupported supported: macamd64 macarm64 winamd64
+.PHONY:buildsupported
+
 dmg: 
 	./dmgbuildIntel.sh
 	./dmgbuildARM.sh
@@ -86,6 +102,8 @@ dmg:
 
 clean:
 	rm bin/*/*
+	rm installers/*.dmg
+	rm installers/*.exe
 .PHONY:clean
 
 doc:

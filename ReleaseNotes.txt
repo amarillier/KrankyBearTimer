@@ -4,8 +4,9 @@ ToDo
 ====
 Timer
 - Improve selected end time mechanism to avoid having to set, then start the timer
-- Add update checker (no silent auto update, users must be allowed to choose)
+- Improve update checker (no silent auto update, users must be allowed to choose)
 - Possibly add homebrew / choco packages
+- Elapsed time option
 - Troll idea: :-) add a quit window that makes people type :wq! to exit the app
     - Some people will know what / who I mean by this
 
@@ -14,6 +15,11 @@ Clock
 - Possible optional extra time zones to display in clock
 - Possible optional alarms similar to phone - one time, repeat interval in clock
 - Possible add API to get current location temperature? in clock
+
+
+0.9.1
+- switched to my own fork of github update checker
+- added update check at app start, no auto update, users must choose to update
 
 
 0.9.0

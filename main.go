@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	// appName    = "KrankyBear Timer"
-	appVersion = "0.9.0" // see FyneApp.toml
+	// appName    = "Kranky Bear Timer"
+	appVersion = "0.9.1" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -86,6 +86,7 @@ var datesize int
 var utcsize int
 var hourchimesound string
 var startclock int
+var processName string
 
 /*
 	minor difference from clock app which sets OS autostart,
@@ -107,6 +108,7 @@ var timerHeight float64
 
 func main() {
 	exePath, err := os.Executable()
+	processName = filepath.Base(os.Args[0])
 	if err != nil {
 		panic(err)
 	}
@@ -210,7 +212,8 @@ func main() {
 				appNameCustom += " Timer"
 			}
 		}
-		w.SetTitle(appNameCustom)
+		appName = appNameCustom
+		w.SetTitle(appName)
 	} else {
 		// if timer is not customized to Tanium, don't allow use of
 		// built in Tanium backgrounds, but user added are ok
@@ -248,6 +251,30 @@ func main() {
 			log.Println("starttimer:", starttimer)
 			adhocTime = 65 // debug value - short for easy test
 		}
+	}
+
+	// check update first
+	updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
+	if updateAvail {
+		// open a window to show the update message
+		// no need to test for updt window open at first start
+		// appName += " (update available)"
+		// appNameCustom += " (update available)"
+		kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+		kb.FillMode = canvas.ImageFillOriginal
+		text := widget.NewLabel(updtmsg)
+		content := container.NewHBox(kb, text)
+		updt = a.NewWindow(appName + ": Update Check")
+		updt.SetIcon(resourceKrankyBearPng)
+		updt.Resize(fyne.NewSize(50, 100))
+		updt.SetContent(content)
+		updt.SetCloseIntercept(func() {
+			updt.Close()
+			updt = nil
+		})
+		// updt.CenterOnScreen() // run centered on primary (laptop) display
+		updt.Show()
+
 	}
 
 	if desk, ok := a.(desktop.App); ok {
@@ -479,7 +506,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 			}
 		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
-			updtmsg := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
+			updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
 			if updt == nil {
 				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
 				kb.FillMode = canvas.ImageFillOriginal
@@ -496,7 +523,8 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 				})
 				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
 				updt.Show()
-				if !strings.Contains(updtmsg, "You are running the latest") {
+				// if !strings.Contains(updtmsg, "You are running the latest") {
+				if updateAvail {
 					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
 						playBeep("up")
 					} else {
@@ -529,7 +557,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		})
 		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
 		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
-		// NB Mac intercepts about below and puts it where they want to put it!
+		// NB Mac intercepts about item below and puts it where they want to put it!
 		// Under 'KrankyBear Timer / About' main section, not under Help
 		newMenuHelp := fyne.NewMenu("Help", about, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
@@ -546,7 +574,6 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 			stop.Disabled = !busy
 			menu.Refresh()
 		}))
-
 	}
 
 	less := widget.NewButtonWithIcon("", theme.ContentRemoveIcon(), func() {
@@ -657,6 +684,9 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		bg,
 		container.NewPadded(container.NewPadded(content))))
 	w.ShowAndRun()
+	if updt != nil {
+		updt.RequestFocus()
+	}
 }
 
 func formatTimer(time int) string {
