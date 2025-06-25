@@ -6,7 +6,7 @@
 GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -ldflags="-w -s" -o bin/MacOSAMD64/
 
 # set executable icon
-./setIcon.sh KrankyBear.png bin/MacOSAMD64/KrankyBearTimer
+./setIcon.sh Resources/Images/KrankyBearFedoraRed.png bin/MacOSAMD64/KrankyBearTimer
 
 cp bin/MacOSAMD64/KrankyBearTimer KrankyBearTimer.app/Contents/MacOS
 
@@ -27,7 +27,7 @@ create-dmg \
   # "./"
 
 # set dmg icon
-./setIcon.sh KrankyBear.png KrankyBearTimerIntel.dmg
+./setIcon.sh Resources/Images/KrankyBearFedoraRed.png KrankyBearTimerIntel.dmg
 if [ ! -d installers ]
 then
   mkdir installers

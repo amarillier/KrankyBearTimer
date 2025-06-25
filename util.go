@@ -111,14 +111,14 @@ func easterEgg(a fyne.App, w fyne.Window) {
 	processName := "^tanium.*"
 	processRegex := regexp.MustCompile(`(?i)^tanium`)
 	if processRegex.MatchString(appNameCustom) || isProcessRunning(processName) {
-		certs = []fyne.Resource{resourceKrankyBearPng, resourceTcnPng, resourceKrankyBearPng, resourceTccPng, resourceKrankyBearPng, resourceTcbePng, resourceKrankyBearPng}
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceKrankyBearBeretPng, resourceKrankyBearBeanieMultiColorPng, resourceKrankyBearChristmasPng, resourceKrankyBearChristmasGrinchPng, resourceKrankyBearCowboyBrownPng, resourceKrankyBearFedoraRedPng, resourceKrankyBearHardHatPng, resourceKrankyBearHogwartsSortingPng, resourceKrankyBearTrapperRedPlaidPng, resourceKrankyBearVikingHelmetPng, resourceHttp418Png, resourceTcn256Png, resourceTcc256Png, resourceTcbe256Png}
 	} else {
-		certs = []fyne.Resource{resourceKrankyBearPng, resourceHttp418Png, resourceKrankyBearPng}
+		certs = []fyne.Resource{resourceKrankyBearPng, resourceKrankyBearBeretPng, resourceKrankyBearBeanieMultiColorPng, resourceKrankyBearChristmasPng, resourceKrankyBearChristmasGrinchPng, resourceKrankyBearCowboyBrownPng, resourceKrankyBearFedoraRedPng, resourceKrankyBearHardHatPng, resourceKrankyBearHogwartsSortingPng, resourceKrankyBearTrapperRedPlaidPng, resourceKrankyBearVikingHelmetPng, resourceHttp418Png}
 	}
 
 	randomIndex := rand.Intn(len(certs))
 	egg := a.NewWindow(appName + ": easter egg")
-	egg.SetIcon(resourceKrankyBearPng)
+	egg.SetIcon(resourceKrankyBearTrapperRedPlaidPng)
 	eggimage := canvas.NewImageFromResource(certs[randomIndex])
 	eggimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found the Easter egg!\n"
@@ -166,7 +166,7 @@ func teapot(a fyne.App, w fyne.Window) {
 	hyperlink := widget.NewHyperlink("What is http 418? https://www.rfc-editor.org/rfc/rfc2324.html", link)
 	hyperlink.Alignment = fyne.TextAlignLeading
 	tpwin := a.NewWindow(appName + ": http: 418")
-	tpwin.SetIcon(resourceKrankyBearPng)
+	tpwin.SetIcon(resourceKrankyBearTrapperRedPlaidPng)
 	tpwinimage := canvas.NewImageFromResource(resourceHttp418Png)
 	tpwinimage.FillMode = canvas.ImageFillOriginal
 	text := "Whoo-hoo! You found another Easter egg!\n"

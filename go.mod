@@ -3,9 +3,10 @@ module github.com/amarillier/KrankyBearTimer
 go 1.24.2
 
 require (
-	fyne.io/fyne/v2 v2.6.0
+	fyne.io/fyne/v2 v2.6.1
 	fyne.io/systray v1.11.0
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
+	github.com/amarillier/KrankyBearModule v0.0.1
 	github.com/amarillier/go-update-checker v0.0.3
 	github.com/gopxl/beep/v2 v2.1.1
 	github.com/itchyny/volume-go v0.2.2
@@ -47,8 +48,8 @@ require (
 	github.com/stretchr/testify v1.10.0 // indirect
 	github.com/yuin/goldmark v1.7.8 // indirect
 	golang.org/x/image v0.24.0 // indirect
-	golang.org/x/net v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

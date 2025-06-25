@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KrankyBearTimer"
-#define MyAppVersion "0.9.1"
+#define MyAppVersion "0.9.2"
 #define MyAppPublisher "Allan Marillier, 2024-2025"
 #define MyAppURL "https://github.com/amarillier/KrankyBearTimer"
 #define MyAppExeName "KrankyBearTimer.exe"
@@ -36,7 +36,7 @@ LicenseFile=C:\Allan\Source\go\KrankyBearTimer\license.txt
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=..\installers
 OutputBaseFilename=KrankyBearTimerSetup
-SetupIconFile=C:\Allan\Source\go\KrankyBearTimer\KrankyBear.ico
+SetupIconFile=C:\Allan\Source\go\KrankyBearTimer\Resources\Images\KrankyBearFedoraRed.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

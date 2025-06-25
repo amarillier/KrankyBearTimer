@@ -3,18 +3,27 @@ Release notes
 ToDo
 ====
 Timer
+- audio.go and util.go to a separate module, they are identical between apps
 - Improve selected end time mechanism to avoid having to set, then start the timer
-- Improve update checker (no silent auto update, users must be allowed to choose)
 - Possibly add homebrew / choco packages
 - Elapsed time option
 - Troll idea: :-) add a quit window that makes people type :wq! to exit the app
-    - Some people will know what / who I mean by this
+    - Some people will know what / who I mean by this. No, I would likely not really do this
+
 
 Clock
 - Possible "days until ..." calculation, optional display via settings in clock
 - Possible optional extra time zones to display in clock
 - Possible optional alarms similar to phone - one time, repeat interval in clock
 - Possible add API to get current location temperature? in clock
+
+
+0.9.2
+- Update checker improvements, never any silent auto update, user must be
+    allowed to choose to update
+- Added 'portable' apps with zip files containing binaries and Resources/* for Mac ARM/AMD and Windows AMD
+- Bump to use updated libraries released to remediate a minor vulnerability.
+    While I am not using specific functions that had the vulnerability, I upgraded for security
 
 
 0.9.1
@@ -86,3 +95,29 @@ Clock
 0.3 
 - initial checkin
 
+Get-CimInstance -Namespace "root\cimv2" -ClassName "Win32_UserAccount" 
+
+Start / cmd / and run as administrator (MUST be as admin!)
+C:\Windows\system32>set program
+ProgramData=C:\ProgramData
+ProgramFiles=C:\Program Files
+ProgramFiles(x86)=C:\Program Files (x86)
+ProgramW6432=C:\Program Files
+
+C:\Tools\SysInternals\psexec.exe -s C:\Windows\SysWOW64\cmd.exe (this launches as local system)
+PowerShell.exe
+
+Alternates where psexec is not available (typically security concerns): 
+Start / Run "%windir%\syswow64\cmd.exe" (NOTE: this launches as admin, NOT as local system)
+set program <Enter> should show ProgramFiles=C:\Program Files (x86) - now you know you have a 32 bit cmd
+PowerShell.exe
+
+PS C:\Windows\system32> get-localuser
+get-localuser : The term 'get-localuser' is not recognized as the name of a cmdlet, function, script file, or operable
+program.
+
+PS C:\Windows\system32> Get-CimInstance -Namespace "root\cimv2" -ClassName "Win32_UserAccount"
+Name             Caption                   AccountType               SID                       Domain
+----             -------                   -----------               ---                       ------
+Administrator    ALLANWIN10LAB1\Adminis... 512                       S-1-5-21-3551515851-64... WIN10LAB1
+Guest            ALLANWIN10LAB1\Guest      512                       S-1-5-21-3551515851-64... WIN10LAB1

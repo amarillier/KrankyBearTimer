@@ -1,0 +1,95 @@
+Release notes
+0.9.NEXT
+ToDo
+====
+Timer
+- audio.go and util.go to a separate module, they are identical between apps
+- Improve selected end time mechanism to avoid having to set, then start the timer
+- Possibly add homebrew / choco packages
+- Elapsed time option
+- Troll idea: :-) add a quit window that makes people type :wq! to exit the app
+    - Some people will know what / who I mean by this. No, I would likely not really do this
+
+
+Clock
+- Possible "days until ..." calculation, optional display via settings in clock
+- Possible optional extra time zones to display in clock
+- Possible optional alarms similar to phone - one time, repeat interval in clock
+- Possible add API to get current location temperature? in clock
+
+
+0.9.2
+- Update checker improvements, never any silent auto update, user must be
+    allowed to choose to update
+- 
+
+
+0.9.1
+- switched to my own fork of github update checker
+- added update check at app start, no auto update, users must choose to update
+
+
+0.9.0
+- Added release notes
+- Rebranded to Kranky Bear Timer, this has always been a personal project and I planned, but decided not to go look for legal approval which would likely be denied anyway since this is not an official company supported app 
+- Added to allow preferences for alternate branding
+    - in preferences, e.g. "timername.default":"JitterBug", not settable via settings, will append Timer if just JitterBug.
+    - Null "" or "default" value leaves default branding as Kranky Bear Timer
+- Rebranding T* via preferences will enable embedded T* resource images to be used, otherwise they will not be exposed for use by anyone outside T*
+- When T* branded, all user files in Resources/Images as well as embedded resource T* images can be used
+- Removed T* licensing - or rather improve my licensing and indicate free for all, including T* with branding by setting timername preference
+- Added to allow for user specified png and jpg files in Resources/Images to be selected as backgrounds. Only these and built in board[1-6] resources can be used when non T* branded
+- Detect timer window size. If it changes, write to prefs on app exit to allow reusing saved / preferred timer window size. This allows resizing to fit the preferred window size based on background images
+- Update checker - preparation for github release checks
+- Version bump 0.8.x to 0.9 because of many changes
+
+
+0.8.5 
+- Convert fyne 2.5 to 2.6.0 (better / lower resource use)
+- other minor improvements
+
+
+0.8.4
+- clock optional mute / unmute when screen locked and based on user selectable time
+- other minor improvements
+
+
+0.8.3
+- User selectable end time for countdown timer - set time like an alarm
+- improve system tray / menu bar for both MacOS and Windows
+- fix Inno setup to not install with autostart at boot enabled
+- add theme settings (light / dark)
+
+
+0.7.1
+- Clock updates
+- improve system tray / menu bar for both MacOS and Windows
+- add optional clock auto start at timer start
+- allow turning clock seconds display off (less resource use)
+- other clock improvements
+
+
+0.7
+- Clock minor updates
+- add Windows Inno Setup installer
+- small improvements
+
+
+0.6
+- Updated clock for single window and proper close, other clock updates
+- Updated settings
+- Updated help
+- Updated resources
+- Installers directory
+- many small improvements
+
+
+0.5
+- add optional auto start at boot
+- add optional desktop clock
+- add MacOS dmg installers
+
+
+0.3 
+- initial checkin
+

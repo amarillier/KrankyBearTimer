@@ -5,7 +5,7 @@
 
 iconSource=$1
 iconDestination=$2
-icon=/tmp/`basename $iconSource`
+icon=/tmp/$(basename $iconSource)
 rsrc=/tmp/icon.rsrc
 
 # Create icon from the iconSource

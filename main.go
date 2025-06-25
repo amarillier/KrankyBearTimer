@@ -26,7 +26,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Timer"
-	appVersion = "0.9.1" // see FyneApp.toml
+	appVersion = "0.9.2" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -131,7 +131,7 @@ func main() {
 	a := app.NewWithID("com.github.amarillier.KrankyBearTimer")
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	w := a.NewWindow(appName)
-	w.SetIcon(resourceKrankyBearPng)
+	w.SetIcon(resourceKrankyBearFedoraRedPng)
 	w.SetPadded(false)
 
 	w.SetCloseIntercept(func() {
@@ -258,27 +258,11 @@ func main() {
 	if updateAvail {
 		// open a window to show the update message
 		// no need to test for updt window open at first start
-		// appName += " (update available)"
-		// appNameCustom += " (update available)"
-		kb := canvas.NewImageFromResource(resourceKrankyBearPng)
-		kb.FillMode = canvas.ImageFillOriginal
-		text := widget.NewLabel(updtmsg)
-		content := container.NewHBox(kb, text)
-		updt = a.NewWindow(appName + ": Update Check")
-		updt.SetIcon(resourceKrankyBearPng)
-		updt.Resize(fyne.NewSize(50, 100))
-		updt.SetContent(content)
-		updt.SetCloseIntercept(func() {
-			updt.Close()
-			updt = nil
-		})
-		// updt.CenterOnScreen() // run centered on primary (laptop) display
-		updt.Show()
-
+		updateAlert(a, updtmsg)
 	}
 
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 		if startclock == 1 {
 			desktopclock(a)
 		}
@@ -314,14 +298,14 @@ func main() {
 			aboutText += "\n\nNo obligation, it's rewarding to hear if you use this app."
 			aboutText += "\n\nLooking about about and help or settings too too much might expose an easter egg!"
 
-			kb := canvas.NewImageFromResource(resourceKrankyBearPng)
+			kb := canvas.NewImageFromResource(resourceKrankyBearFedoraRedPng)
 			text := widget.NewLabel(aboutText)
 			kb.FillMode = canvas.ImageFillOriginal
 			content := container.NewHBox(kb, text)
 
 			if abt == nil {
 				abt = a.NewWindow(appName + ": About")
-				abt.SetIcon(resourceKrankyBearPng)
+				abt.SetIcon(resourceKrankyBearFedoraRedPng)
 				abt.Resize(fyne.NewSize(50, 100))
 				// abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetContent(content)
@@ -339,7 +323,7 @@ func main() {
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
 				hlp = a.NewWindow(appName + ": Help")
-				hlp.SetIcon(resourceKrankyBearPng)
+				hlp.SetIcon(resourceKrankyBearFedoraRedPng)
 				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
 It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
 
@@ -506,38 +490,17 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 			}
 		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
-			updtmsg, updateAvail := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
+			// throw away updateAvail here, use _, unneeded for manual check
+			updtmsg, _ := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
 			if updt == nil {
-				kb := canvas.NewImageFromResource(resourceKrankyBearPng)
-				kb.FillMode = canvas.ImageFillOriginal
-				text := widget.NewLabel(updtmsg)
-				content := container.NewHBox(kb, text)
-				updt = a.NewWindow(appName + ": Update Check")
-				updt.SetIcon(resourceKrankyBearPng)
-				updt.Resize(fyne.NewSize(50, 100))
-				// updt.SetContent(widget.NewLabel(updtmsg))
-				updt.SetContent(content)
-				updt.SetCloseIntercept(func() {
-					updt.Close()
-					updt = nil
-				})
-				updt.CenterOnScreen() // run centered on pr1imary (laptop) display
-				updt.Show()
-				// if !strings.Contains(updtmsg, "You are running the latest") {
-				if updateAvail {
-					if !checkFileExists(sndDir + "/KrankyBearGrowl.mp3") {
-						playBeep("up")
-					} else {
-						playMp3(sndDir + "//KrankyBearGrowl.mp3") // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
-					}
-				}
+				updateAlert(a, updtmsg)
 			} else {
 				updt.RequestFocus()
 			}
 		})
 		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, updtchk, help, settingsTimer, settingsClock, settingsTheme)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceKrankyBearPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 		systray.SetTooltip(appName)
 
 		// Menu items
@@ -559,7 +522,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
 		// NB Mac intercepts about item below and puts it where they want to put it!
 		// Under 'KrankyBear Timer / About' main section, not under Help
-		newMenuHelp := fyne.NewMenu("Help", about, help)
+		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
 		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
 		barmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
 		w.SetMainMenu(barmenu)
@@ -714,7 +677,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 	running.Set(true)
 
 	if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearPng)
+		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 		systray.SetTooltip(appName)
 		// systray.SetTitle(timerName)
 	}
@@ -737,7 +700,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 		remain = -1 // don't notify
 		w.SetTitle(appName)
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearPng)
+			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 			systray.SetTooltip(appName)
 			systray.SetTitle("")
 			stop.Disable()
@@ -824,7 +787,7 @@ func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
 			}
 		}
 		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearPng)
+			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 			systray.SetTooltip(appName)
 			systray.SetTitle("")
 		}
@@ -927,6 +890,56 @@ func isValidCustomTime(t string, test string) bool {
 			return true
 		}
 	}
+}
+
+func updateAlert(a fyne.App, updtmsg string) {
+	// open a window to show the update message
+	// no need to test for updt window open at first start
+	var kbimg *canvas.Image
+	releaselink, rerr := url.Parse("https://github.com/amarillier/KrankyBearTimer/releases/latest")
+	if rerr != nil {
+		fyne.LogError("Could not parse URL", rerr)
+	}
+	myreleaselink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearTimer/releases/latest", releaselink)
+	myreleaselink.Alignment = fyne.TextAlignLeading
+
+	releasenoteslink, rnerr := url.Parse("https://github.com/amarillier/KrankyBearTimer/blob/main/ReleaseNotes.txt")
+	if rnerr != nil {
+		fyne.LogError("Could not parse URL", rnerr)
+	}
+	myreleasenoteslink := widget.NewHyperlink("https://github.com/amarillier/KrankyBearTimer/blob/main/ReleaseNotes.txt", releasenoteslink)
+	myreleasenoteslink.Alignment = fyne.TextAlignLeading
+
+	if strings.Contains(updtmsg, "newer version") {
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearHardHatPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	} else if strings.Contains(updtmsg, "running the latest") {
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearBeretPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	} else {
+		alert := sndDir + "/KrankyBearGrowl.mp3"
+		alert = sndDir + "/uhOh.mp3"
+		if !checkFileExists(alert) {
+			playBeep("up")
+		} else {
+			playMp3(alert) // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
+		}
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearVikingHelmetPng)
+		kbimg.FillMode = canvas.ImageFillOriginal
+	}
+
+	text := widget.NewLabel(updtmsg)
+	content := container.NewVBox(kbimg, text, myreleaselink, myreleasenoteslink)
+	updt = a.NewWindow(appName + ": Update Check")
+	updt.SetIcon(resourceKrankyBearBeretPng)
+	updt.Resize(fyne.NewSize(50, 100))
+	updt.SetContent(content)
+	updt.SetCloseIntercept(func() {
+		updt.Close()
+		updt = nil
+	})
+	// updt.CenterOnScreen() // run centered on primary (laptop) display
+	updt.Show()
 }
 
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
