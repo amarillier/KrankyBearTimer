@@ -2,10 +2,10 @@
 # KrankyBear Timer  ![image](https://github.com/user-attachments/assets/9d653e80-6a4a-429d-a669-d607ba1bfcf3)
 
 preferences stored via fyne preferences API land in
-~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
-~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer\preferences.json
-MacOS resource location (sounds and backgrounds): /Applications/KrankyBear Timer.app/Contents/Resources
-Theme preferences are in ~/Library/Preferences/fyne/settings.json
+* MacOS: ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
+* Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer\preferences.json
+* MacOS resource location (sounds and backgrounds): /Applications/KrankyBear Timer.app/Contents/Resources
+* Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 
 ## Features
