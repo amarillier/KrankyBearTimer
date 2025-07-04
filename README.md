@@ -10,10 +10,11 @@ Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 ## Features
 
-Basic list - see help in the app for more detail - this is a countdown timer
+Basic list - see help in the app for more detail - this is a countdown timer. Default times shown below can be modified to user preferred defaults via settings.
 * Ad hoc time settable in 5 minute steps
 * Bio break timer 10 minutes
 * Lunch break timer 60 minutes
+* Break timer to end at user specified time
 * Notifications when the timer is done
 * Color highlight when time is running out
 * Optional customizable desktop clock with seconds, UTC time, date, hourly chime
