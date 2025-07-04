@@ -10,7 +10,7 @@ Theme preferences are in ~/Library/Preferences/fyne/settings.json
 
 ## Features
 
-Basic list - see help in the app for more detail
+Basic list - see help in the app for more detail - this is a countdown timer
 * Ad hoc time settable in 5 minute steps
 * Bio break timer 10 minutes
 * Lunch break timer 60 minutes
@@ -18,6 +18,7 @@ Basic list - see help in the app for more detail
 * Color highlight when time is running out
 * Optional customizable desktop clock with seconds, UTC time, date, hourly chime
 * System tray access
+* Optional desktop clock embedded - basically identical clock codebase from https://github.com/amarillier/KrankyBearClock allowing running a single timer / clock application
 
 # To-do / known problems
 * Available for Windows with Setup.exe and MacOS .dmg installers, as well as zip files for portable apps 
