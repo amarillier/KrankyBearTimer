@@ -1,7 +1,3 @@
-<img width="737" alt="image" src="https://github.com/user-attachments/assets/2da952b2-5058-481c-8744-9c938206967b" />
-<img width="1297" alt="image" src="https://github.com/user-attachments/assets/1e8bf129-b981-48ca-9b25-d1def88e85a4" />
-<img width="977" alt="image" src="https://github.com/user-attachments/assets/33e2cf63-8c0a-42df-ae93-91e78afc5008" />
-
 
 # KrankyBear Timer  ![image](https://github.com/user-attachments/assets/9d653e80-6a4a-429d-a669-d607ba1bfcf3)
 
@@ -32,3 +28,8 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 - See ReleaseNotes.txt for all recent changes and future plans
 
 - Known problems - needs OpenGL drivers on some Windows
+
+
+<img width="737" alt="image" src="https://github.com/user-attachments/assets/2da952b2-5058-481c-8744-9c938206967b" />
+<img width="1297" alt="image" src="https://github.com/user-attachments/assets/1e8bf129-b981-48ca-9b25-d1def88e85a4" />
+<img width="977" alt="image" src="https://github.com/user-attachments/assets/33e2cf63-8c0a-42df-ae93-91e78afc5008" />
