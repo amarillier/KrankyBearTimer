@@ -18,6 +18,13 @@ Clock
 - Possible add API to get current location temperature? in clock
 
 
+0.9.3 (not yet published)
+- Manual preferences edit, menu item - be cautious using this, GUI settings is safer
+- Mouse jiggler - we all know what that means! Don't be reckless, lock your computer
+- 
+
+
+
 0.9.2
 - Update checker improvements, never any silent auto update, user must be
     allowed to choose to update

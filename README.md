@@ -32,6 +32,14 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 - Known problems - needs OpenGL drivers on some Windows
 
 
+# License
+See license.txt
+This is 100% free for anyone to use or misuse any way you like with no warranty as
+to suitability or anything else, other than it has no viruses when I compile and
+commit to git. But you should always check and scan anything you download from the
+internet for viruses anyway. Don't be reckless.
+All KrankyBear icons, images, logos used are copyright (c) Allan Marillier, 2024, 2025 ...
+
 <img width="737" alt="image" src="https://github.com/user-attachments/assets/2da952b2-5058-481c-8744-9c938206967b" />
 <img width="1297" alt="image" src="https://github.com/user-attachments/assets/1e8bf129-b981-48ca-9b25-d1def88e85a4" />
 <img width="977" alt="image" src="https://github.com/user-attachments/assets/33e2cf63-8c0a-42df-ae93-91e78afc5008" />

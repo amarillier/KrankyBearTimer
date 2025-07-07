@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -26,7 +27,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Timer"
-	appVersion = "0.9.2" // see FyneApp.toml
+	appVersion = "0.9.3" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -69,6 +70,7 @@ var hourchime int
 var slockmute int
 var clockmutedvol int
 var automute int
+var jiggle int
 var currentvolume int
 var muteonhr int
 var muteonmin int
@@ -87,6 +89,7 @@ var utcsize int
 var hourchimesound string
 var startclock int
 var processName string
+var prefs string
 
 /*
 	minor difference from clock app which sets OS autostart,
@@ -149,7 +152,7 @@ func main() {
 	w.SetMaster()      // this sets this as master and closes all child windows
 	w.CenterOnScreen() // run centered on primary (laptop) display
 
-	prefs := strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
+	prefs = strings.ReplaceAll((a.Storage().RootURI()).String(), "file://", "") + "/preferences.json"
 	if !checkFileExists(prefs) {
 		if debug == 1 {
 			log.Println("prefs file does not exist")
@@ -176,6 +179,7 @@ func main() {
 	showdate = a.Preferences().IntWithFallback("showdate.default", 1)
 	showutc = a.Preferences().IntWithFallback("showutc.default", 1)
 	showhr12 = a.Preferences().IntWithFallback("showhr12.default", 1)
+	jiggle = a.Preferences().IntWithFallback("jiggle.default", 0)
 	slockmute = a.Preferences().IntWithFallback("slockmute.default", 0)
 	automute = a.Preferences().IntWithFallback("automute.default", 0)
 	muteonhr = a.Preferences().IntWithFallback("muteonhr.default", 20)
@@ -482,6 +486,25 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
 			makeSettingsTheme(a, w, bg)
 		})
+		prefsEdit := fyne.NewMenuItem("Preferences manual edit", func() {
+			var cmd *exec.Cmd
+
+			switch runtime.GOOS {
+			case "windows":
+				cmd = exec.Command("cmd", "/d", "/c", "start", prefs)
+			case "darwin": // macOS
+				cmd = exec.Command("open", prefs)
+			case "linux":
+				cmd = exec.Command("xdg-open", prefs)
+			default:
+				fmt.Printf("Unsupported operating system: %s\n", runtime.GOOS)
+				return
+			}
+			err := cmd.Run()
+			if err != nil {
+				playBeep("down")
+			}
+		})
 		clock := fyne.NewMenuItem("Clock", func() {
 			if clock == nil {
 				desktopclock(a)
@@ -498,7 +521,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 				updt.RequestFocus()
 			}
 		})
-		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, updtchk, help, settingsTimer, settingsClock, settingsTheme)
+		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, updtchk, help, settingsTimer, settingsClock, settingsTheme, prefsEdit)
 		desk.SetSystemTrayMenu(menu)
 		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
 		systray.SetTooltip(appName)
@@ -523,7 +546,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		// NB Mac intercepts about item below and puts it where they want to put it!
 		// Under 'KrankyBear Timer / About' main section, not under Help
 		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
-		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme)
+		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme, prefsEdit)
 		barmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
 		w.SetMainMenu(barmenu)
 		// barmenu.Refresh()
@@ -914,7 +937,7 @@ func updateAlert(a fyne.App, updtmsg string) {
 		kbimg = canvas.NewImageFromResource(resourceKrankyBearHardHatPng)
 		kbimg.FillMode = canvas.ImageFillOriginal
 	} else if strings.Contains(updtmsg, "running the latest") {
-		kbimg = canvas.NewImageFromResource(resourceKrankyBearBeretPng)
+		kbimg = canvas.NewImageFromResource(resourceKrankyBearFedoraRedPng)
 		kbimg.FillMode = canvas.ImageFillOriginal
 	} else {
 		alert := sndDir + "/KrankyBearGrowl.mp3"

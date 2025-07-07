@@ -11,6 +11,12 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"github.com/IamFaizanKhalid/lock"
+	"github.com/go-vgo/robotgo"
+	_ "github.com/go-vgo/robotgo/base"
+	_ "github.com/go-vgo/robotgo/key"
+	_ "github.com/go-vgo/robotgo/mouse"
+	_ "github.com/go-vgo/robotgo/screen"
+	_ "github.com/go-vgo/robotgo/window"
 	"github.com/itchyny/volume-go"
 )
 
@@ -170,6 +176,13 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			fyne.Do(func() {
 				nowtime.Refresh()
 				nowdate.Refresh()
+				// if screen is not locked and jiggle is on and minute modulo jiggle ...
+				if !lock.IsScreenLocked() && jiggle != 0 && now.Minute()%jiggle == 0 {
+					robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
+					robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
+					robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
+					robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+				}
 			})
 			nowdate.Text = now.Format(dateFormat)
 			if showutc == 1 {
