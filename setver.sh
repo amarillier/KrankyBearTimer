@@ -35,8 +35,8 @@ sed -i '' "s/product_version\":.*/product_version\": \"$ver\"/" ./winres/winres.
 sed -i '' "s/FileVersion\":.*/FileVersion\": \"$ver\",/" ./winres/winres.json
 sed -i '' "s/ProductVersion\":.*/ProductVersion\": \"$ver\",/" ./winres/winres.json
 
-echo "Info.plist"
-sed -i '' "s/<string>v .*<\/string>/<string>v $ver<\/string>/" ./KrankyBearTimer.app/Contents/Info.plist
+echo "No Info.plist updates"
+# sed -i '' "s/<string>v .*<\/string>/<string>v $ver<\/string>/" ./KrankyBearTimer.app/Contents/Info.plist
 
 echo "mkAllZip.sh"
 sed -i '' "s/version=\".*\"/version=\"$ver\"/" mkAllZip.sh
