@@ -18,7 +18,6 @@ sync*
 installers/*
 KrankyBearTimer.app
 KrankyBearTimer
-KrankyBearTimer.exe
 UNUSED/*
 ResourcesUnused/*
 Resources/*.txt
@@ -28,8 +27,8 @@ latestcheck.json
 DEPRECATED/*
 
 # Distribution / packaging
-*.zip
-*.exe
+!*.zip
+!*.exe
 *.dmg
 
 # go modules, we should be able to get all of these any time
