@@ -13,7 +13,7 @@ sensors/*.sh
 templates/*
 test/*
 tst/*
-bin/*
+!bin/*
 sync*
 installers/*
 KrankyBearTimer.app
