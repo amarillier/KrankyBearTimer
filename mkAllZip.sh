@@ -35,9 +35,8 @@ rm KrankyBearTimer/timer
 if [ $# -eq 1 ] && [ "$1" = "-release" ]
 then
     # see gh docs: https://cli.github.com/manual/gh_release_create
-    awk '/0.4.4/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt
-    gh release create --title v"$version" v"$version" --draft --notes-file latestReleaseNotes.txt --prerelease KrankyBearTimerLinuxAMD64.zip KrankyBearTimer_0.4.4-1_aarch64.rpm KrankyBearTimerLinuxARM64.zip KrankyBearTimer_0.4.4-1_amd64.deb KrankyBearTimerMacOSAMD64.zip KrankyBearTimer_0.4.4-1_amd64.pkg KrankyBearTimerMacOSARM64.zip KrankyBearTimer_0.4.4-1_arm64.deb KrankyBearTimerSetup.exe KrankyBearTimer_0.4.4-1_arm64.pkg KrankyBearTimerWinAMD.zip KrankyBearTimer_0.4.4-1_x86_64.rpm
-
+    awk '/0.9.5/{flag=1}/^$/{flag=0}flag' ../ReleaseNotes.txt > latestReleaseNotes.txt
+    gh release create --title v"$version" v"$version" --draft --notes-file latestReleaseNotes.txt --prerelease krankybear-resources_1.0.0-1_amd64.deb KrankyBearTimer_0.9.5-1_x86_64.rpm krankybear-resources_1.0.0-1_x86_64.rpm KrankyBearTimerLinuxAMD64.zip KrankyBearTimerLinuxARM64.zip KrankyBearTimer_0.9.5-1_aarch64.rpm     KrankyBearTimerMacOSAMD64.zip KrankyBearTimer_0.9.5-1_amd64.deb KrankyBearTimerMacOSARM64.zip KrankyBearTimer_0.9.5-1_amd64.pkg KrankyBearTimerSetup.exe KrankyBearTimer_0.9.5-1_arm64.deb KrankyBearTimerWinAMD64.zip KrankyBearTimer_0.9.5-1_arm64.pkg
     echo "Created draft release $version"
     echo "Remember to publish when ready"
     echo "gh release edit v$version --draft=false --prerelease=false"
