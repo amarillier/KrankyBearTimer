@@ -4,7 +4,7 @@
 *id_dsa*
 authorized_keys*
 IAM*
-.DS_Store/*
+.DS_Store
 .vscode
 original/*
 sensors/*.ps1
@@ -14,6 +14,7 @@ templates/*
 test/*
 tst/*
 bin/*
+sync*
 installers/*
 KrankyBearTimer.app
 KrankyBearTimer
@@ -24,6 +25,7 @@ Resources/*.txt
 Resources/*/notUsed
 ResourcesUnused
 latestcheck.json
+DEPRECATED/*
 
 # Distribution / packaging
 *.zip

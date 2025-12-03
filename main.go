@@ -23,11 +23,14 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"fyne.io/systray"
+
+	"github.com/gopxl/beep/v2"
+	"github.com/gopxl/beep/v2/speaker"
 )
 
 const (
 	// appName    = "Kranky Bear Timer"
-	appVersion = "0.9.3" // see FyneApp.toml
+	appVersion = "0.9.5" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -36,30 +39,24 @@ var appNameCustom = ""
 var appCopyright = "Copyright (c) Allan Marillier, 2024-" + strconv.Itoa(time.Now().Year())
 var running = binding.NewBool()
 var bg fyne.Canvas
-var remain int
-var notify int
-var sound int
-var traytimer int
 
-var adhocTime int
+// Timer-specific variables moved to timer.go
 var adhocbtn *widget.Button
 var adhocmnu *fyne.MenuItem
-var biobreakTime int
-var lunchTime int
-var endTime time.Time
-var customTime time.Time
-var endTimeSec int
 var menu *fyne.Menu
-var clock fyne.Window // clock window
+var clock fyne.Window           // clock window
+var selectedMenu *fyne.MenuItem // Selected End Time menu item
+var elapsedMenu *fyne.MenuItem  // Elapsed Time menu item
+var stopMenu *fyne.MenuItem     // Stop menu item
+var lunchMenu *fyne.MenuItem    // Lunch timer menu item
+var biobreakMenu *fyne.MenuItem // Bio Break timer menu item
+var lunchBtn *widget.Button     // Lunch timer button
+var biobreakBtn *widget.Button  // Bio Break timer button
+var elapsedBtn *widget.Button   // Elapsed timer button
 
+// Shared directories (used by timer, audio, etc.)
 var imgDir string
-var timerbg string
-var starttimer int
-
 var sndDir string
-var endsnd string
-var oneminsnd string
-var halfminsnd string
 
 var showseconds int
 var showtimezone int
@@ -71,6 +68,7 @@ var slockmute int
 var clockmutedvol int
 var automute int
 var jiggle int
+var jiggleconf int
 var currentvolume int
 var muteonhr int
 var muteonmin int
@@ -90,6 +88,12 @@ var hourchimesound string
 var startclock int
 var processName string
 var prefs string
+var lastChimeHour int = -1              // Track last hour when chime played to prevent double playback
+var clockUpdateLoopRunning bool = false // Prevent multiple update loops from running
+var clockUpdateLoopStop chan bool       // Channel to stop the update loop
+var hourChimeFileExists bool = false    // Cache file existence check
+var hourChimeFileChecked bool = false   // Track if we've checked the file
+var hourChimeCachedFile string = ""     // Track which file was cached
 
 /*
 	minor difference from clock app which sets OS autostart,
@@ -104,10 +108,41 @@ var updt fyne.Window
 var timerWidth float64
 var timerHeight float64
 
+// Countdown window variables
+var countdown fyne.Window
+var countdownDate1 string
+var countdownDate2 string
+var countdownDate3 string
+var countdownDesc1 string
+var countdownDesc2 string
+var countdownDesc3 string
+var countdownTitleText *canvas.Text
+var countdownHelpText *canvas.Text
+var countdownBackground *canvas.Rectangle
+var countdownDaysText1 *canvas.Text
+var countdownDaysText2 *canvas.Text
+var countdownDaysText3 *canvas.Text
+
+// Additional timezones (up to 5)
+var timezone1Enabled int
+var timezone1Name string
+var timezone1Offset string // UTC offset (e.g., "+5", "-3.5")
+var timezone2Enabled int
+var timezone2Name string
+var timezone2Offset string
+var timezone3Enabled int
+var timezone3Name string
+var timezone3Offset string
+var timezone4Enabled int
+var timezone4Name string
+var timezone4Offset string
+var timezone5Enabled int
+var timezone5Name string
+var timezone5Offset string
+
 // preferences stored via fyne preferences API land in
 // ~/Library/Preferences/fyne/com.github.amarillier.KrankyBearTimer/preferences.json
 // ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer\preferences.json
-// {"adhoc.default":300,"background.default":"blue","biobreak.default":600,"endsound.default":"baseball.mp3","halfminsound.default":"sosumi.mp3","lunch.default":3600,"notify.default":1,"oneminsound.default":"hero.mp3", "sound.default":1}
 
 func main() {
 	exePath, err := os.Executable()
@@ -131,10 +166,27 @@ func main() {
 		imgDir = launchDir + "/Resources/Images"
 	}
 
+	// Initialize speaker at application launch for faster audio playback
+	speakerSampleRate = beep.SampleRate(48000)
+	speaker.Init(speakerSampleRate, speakerSampleRate.N(time.Second/10))
+
 	a := app.NewWithID("com.github.amarillier.KrankyBearTimer")
+
+	// Load alarms and start alarm checker
+	loadAlarms(a)
+	startAlarmChecker(a)
+	// Load weather settings and start weather refresh if enabled
+	loadWeatherSettings(a)
+	startWeatherRefresh(a)
 	a.Settings().SetTheme(&appTheme{Theme: theme.DefaultTheme()})
 	w := a.NewWindow(appName)
-	w.SetIcon(resourceKrankyBearFedoraRedPng)
+	timerWindow = w // store reference for dynamic updates
+	_, month, _ := time.Now().Date()
+	if month == time.December {
+		w.SetIcon(resourceKrankyBearChristmasGrinchPng)
+	} else {
+		w.SetIcon(resourceKrankyBearFedoraRedPng)
+	}
 	w.SetPadded(false)
 
 	w.SetCloseIntercept(func() {
@@ -158,7 +210,9 @@ func main() {
 			log.Println("prefs file does not exist")
 		}
 		// add some default prefs that can be modified via settings
-		writeDefaultSettings(a)
+		// Initialize both timer and clock defaults
+		writeDefaultSettingsTimer(a)
+		writeDefaultSettings(a) // clock defaults from settings-clock.go
 		a.Preferences().SetString("timername.default", "")
 	}
 	// get default timer settings from preferences
@@ -199,8 +253,43 @@ func main() {
 	utcsize = a.Preferences().IntWithFallback("utcsize.default", 18)
 	hourchimesound = a.Preferences().StringWithFallback("hourchimesound.default", "hero.mp3")
 	startclock = a.Preferences().IntWithFallback("startclock.default", 0)
-	// "Mon Jan 2 15:04:05 MST 2006"
-	endTime, _ = time.Parse("15:04", "00:00") // set default midnight
+	// Load countdown dates
+	countdownDate1 = a.Preferences().StringWithFallback("countdown.date1", "")
+	countdownDesc1 = a.Preferences().StringWithFallback("countdown.desc1", "")
+	countdownDate2 = a.Preferences().StringWithFallback("countdown.date2", "")
+	countdownDesc2 = a.Preferences().StringWithFallback("countdown.desc2", "")
+	countdownDate3 = a.Preferences().StringWithFallback("countdown.date3", "")
+	countdownDesc3 = a.Preferences().StringWithFallback("countdown.desc3", "")
+	// Load additional timezones
+	timezone1Enabled = a.Preferences().IntWithFallback("timezone1.enabled", 0)
+	timezone1Name = a.Preferences().StringWithFallback("timezone1.name", "")
+	timezone1Offset = a.Preferences().StringWithFallback("timezone1.offset", "")
+	timezone2Enabled = a.Preferences().IntWithFallback("timezone2.enabled", 0)
+	timezone2Name = a.Preferences().StringWithFallback("timezone2.name", "")
+	timezone2Offset = a.Preferences().StringWithFallback("timezone2.offset", "")
+	timezone3Enabled = a.Preferences().IntWithFallback("timezone3.enabled", 0)
+	timezone3Name = a.Preferences().StringWithFallback("timezone3.name", "")
+	timezone3Offset = a.Preferences().StringWithFallback("timezone3.offset", "")
+	timezone4Enabled = a.Preferences().IntWithFallback("timezone4.enabled", 0)
+	timezone4Name = a.Preferences().StringWithFallback("timezone4.name", "")
+	timezone4Offset = a.Preferences().StringWithFallback("timezone4.offset", "")
+	timezone5Enabled = a.Preferences().IntWithFallback("timezone5.enabled", 0)
+	timezone5Name = a.Preferences().StringWithFallback("timezone5.name", "")
+	timezone5Offset = a.Preferences().StringWithFallback("timezone5.offset", "")
+	// Load saved end time from preferences
+	endTimeStr := a.Preferences().StringWithFallback("endtime.default", "")
+	if endTimeStr != "" {
+		// Parse the saved time (HH:MM format)
+		if parsedTime, err := time.Parse("15:04", endTimeStr); err == nil {
+			now := time.Now()
+			// Set customTime to today at the saved time
+			customTime = time.Date(now.Year(), now.Month(), now.Day(), parsedTime.Hour(), parsedTime.Minute(), 0, 0, now.Location())
+			endTime = customTime
+		}
+	} else {
+		// "Mon Jan 2 15:04:05 MST 2006"
+		endTime, _ = time.Parse("15:04", "00:00") // set default midnight
+	}
 
 	// Allow for user defined custom timer name to brand e.g. Tanium Timer
 	appNameCustom = a.Preferences().StringWithFallback("timername.default", appName)
@@ -266,9 +355,23 @@ func main() {
 	}
 
 	if desk, ok := a.(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
+		_, month, _ := time.Now().Date()
+		if month == time.December {
+			desk.SetSystemTrayIcon(resourceKrankyBearChristmasGrinchPng)
+		} else {
+			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
+		}
 		if startclock == 1 {
 			desktopclock(a)
+			// Bring clock to front after a short delay to ensure it appears above timer window
+			go func() {
+				time.Sleep(200 * time.Millisecond)
+				fyne.Do(func() {
+					if clock != nil {
+						clock.RequestFocus()
+					}
+				})
+			}()
 		}
 		systray.SetTooltip(appName)
 		//systray.SetTitle(timerName)
@@ -277,19 +380,23 @@ func main() {
 			w.Canvas().Focused()
 		})
 		hide := fyne.NewMenuItem("Hide", w.Hide)
-		lunch := fyne.NewMenuItem("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
+		lunchMenu = fyne.NewMenuItem("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
 			startTimer(lunchTime, "Lunch", w.Canvas(), w)
 		})
-		biobreak := fyne.NewMenuItem("Bio Break ("+strconv.Itoa(biobreakTime/60)+")", func() {
+		biobreakMenu = fyne.NewMenuItem("Bio Break ("+strconv.Itoa(biobreakTime/60)+")", func() {
 			startTimer(biobreakTime, "Bio Break", w.Canvas(), w)
 		})
 		adhocmnu = fyne.NewMenuItem("Ad Hoc ("+strconv.Itoa(adhocTime/60)+")", func() {
 			startTimer(adhocTime, "Ad Hoc Timer", w.Canvas(), w)
 		})
-		selected := fyne.NewMenuItem("Selected End Time", func() {
-			startTimer(endTimeSec, "Selected End Time", w.Canvas(), w)
+		selectedMenu = fyne.NewMenuItem("Selected End Time", func() {
+			// Open dialog to set time and start timer
+			setEndTime(a, w, bg, true)
 		})
-		stop := fyne.NewMenuItem("Stop", func() {
+		elapsedMenu = fyne.NewMenuItem("Elapsed Time", func() {
+			startElapsedTimer(w.Canvas(), w)
+		})
+		stopMenu = fyne.NewMenuItem("Stop", func() {
 			remain = -1 // don't notify when the user stops it
 		})
 		about := fyne.NewMenuItem("About", func() {
@@ -303,13 +410,22 @@ func main() {
 			aboutText += "\n\nLooking about about and help or settings too too much might expose an easter egg!"
 
 			kb := canvas.NewImageFromResource(resourceKrankyBearFedoraRedPng)
+			_, month, _ := time.Now().Date()
+			if month == time.December {
+				kb = canvas.NewImageFromResource(resourceKrankyBearChristmasGrinchPng)
+			}
 			text := widget.NewLabel(aboutText)
 			kb.FillMode = canvas.ImageFillOriginal
 			content := container.NewHBox(kb, text)
 
 			if abt == nil {
 				abt = a.NewWindow(appName + ": About")
-				abt.SetIcon(resourceKrankyBearFedoraRedPng)
+				_, month, _ := time.Now().Date()
+				if month == time.December {
+					abt.SetIcon(resourceKrankyBearChristmasGrinchPng)
+				} else {
+					abt.SetIcon(resourceKrankyBearFedoraRedPng)
+				}
 				abt.Resize(fyne.NewSize(50, 100))
 				// abt.SetContent(widget.NewLabel(aboutText))
 				abt.SetContent(content)
@@ -327,7 +443,12 @@ func main() {
 		help := fyne.NewMenuItem("Help", func() {
 			if hlp == nil {
 				hlp = a.NewWindow(appName + ": Help")
-				hlp.SetIcon(resourceKrankyBearFedoraRedPng)
+				_, month, _ := time.Now().Date()
+				if month == time.December {
+					hlp.SetIcon(resourceKrankyBearChristmasGrinchPng)
+				} else {
+					hlp.SetIcon(resourceKrankyBearFedoraRedPng)
+				}
 				hlpText := `This application is primarily a timer to manage ad hoc, bio-break and lunch break times during training or other events. 
 It also includes an optional desktop clock that can be set to auto start when the timer starts, or run on demand as needed.
 
@@ -477,11 +598,11 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 				easterEgg(a, w)
 			}
 		})
-		settingsTimer := fyne.NewMenuItem("Settings (Timer)", func() {
-			makeSettingsTimer(a, w, bg)
-		})
 		settingsClock := fyne.NewMenuItem("Settings (Clock)", func() {
 			makeSettingsClock(a, w, bg)
+		})
+		settingsTimer := fyne.NewMenuItem("Settings (Timer)", func() {
+			makeSettingsTimer(a, w, bg)
 		})
 		settingsTheme := fyne.NewMenuItem("Settings (Theme)", func() {
 			makeSettingsTheme(a, w, bg)
@@ -512,6 +633,15 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 				clock.RequestFocus()
 			}
 		})
+		countdownDates := fyne.NewMenuItem("Countdown Dates", func() {
+			makeCountdownDates(a, w, bg)
+		})
+		alarmsMenu := fyne.NewMenuItem("Alarms", func() {
+			makeAlarmsWindow(a, w, bg)
+		})
+		weatherMenu := fyne.NewMenuItem("Weather", func() {
+			makeWeatherWindow(a, w, bg)
+		})
 		updtchk := fyne.NewMenuItem("Check for update", func() {
 			// throw away updateAvail here, use _, unneeded for manual check
 			updtmsg, _ := updateChecker("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "https://github.com/amarillier/KrankyBearTimer/releases/latest")
@@ -521,9 +651,14 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 				updt.RequestFocus()
 			}
 		})
-		menu = fyne.NewMenu(a.Metadata().Name, show, hide, fyne.NewMenuItemSeparator(), lunch, biobreak, adhocmnu, selected, stop, fyne.NewMenuItemSeparator(), clock, about, updtchk, help, settingsTimer, settingsClock, settingsTheme, prefsEdit)
+		menu = fyne.NewMenu(a.Metadata().Name, show, hide, clock, alarmsMenu, countdownDates, weatherMenu, fyne.NewMenuItemSeparator(), lunchMenu, biobreakMenu, adhocmnu, selectedMenu, elapsedMenu, stopMenu, fyne.NewMenuItemSeparator(), about, updtchk, help, settingsClock, settingsTimer, settingsTheme, prefsEdit)
 		desk.SetSystemTrayMenu(menu)
-		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
+		_, month, _ = time.Now().Date()
+		if month == time.December {
+			desk.SetSystemTrayIcon(resourceKrankyBearChristmasGrinchPng)
+		} else {
+			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
+		}
 		systray.SetTooltip(appName)
 
 		// Menu items
@@ -541,25 +676,15 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 			a.Preferences().SetFloat("height.default", float64(height))
 			a.Quit()
 		})
-		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, fyne.NewMenuItemSeparator(), quit)
-		newMenuTimers := fyne.NewMenu("Timers", lunch, biobreak, adhocmnu, selected, stop)
+		newMenuOps := fyne.NewMenu("Operations", show, hide, clock, alarmsMenu, countdownDates, weatherMenu, fyne.NewMenuItemSeparator(), quit)
+		newMenuTimers := fyne.NewMenu("Timers", lunchMenu, biobreakMenu, adhocmnu, selectedMenu, elapsedMenu, stopMenu)
 		// NB Mac intercepts about item below and puts it where they want to put it!
 		// Under 'KrankyBear Timer / About' main section, not under Help
 		newMenuHelp := fyne.NewMenu("Help", about, updtchk, help)
-		newMenuSettings := fyne.NewMenu("Settings", settingsTimer, settingsClock, settingsTheme, prefsEdit)
+		newMenuSettings := fyne.NewMenu("Settings", settingsClock, settingsTimer, settingsTheme, prefsEdit)
 		barmenu := fyne.NewMainMenu(newMenuOps, newMenuTimers, newMenuHelp, newMenuSettings)
 		w.SetMainMenu(barmenu)
 		// barmenu.Refresh()
-
-		running.AddListener(binding.NewDataListener(func() {
-			busy, _ := running.Get()
-			lunch.Disabled = busy
-			biobreak.Disabled = busy
-			adhocmnu.Disabled = busy
-			selected.Disabled = busy
-			stop.Disabled = !busy
-			menu.Refresh()
-		}))
 	}
 
 	less := widget.NewButtonWithIcon("", theme.ContentRemoveIcon(), func() {
@@ -573,7 +698,7 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		menu.Refresh()
 		a.Preferences().SetInt("adhoc.default", adhocTime)
 	})
-	less.Importance = widget.WarningImportance // orange
+	less.Importance = widget.DangerImportance // red
 	more := widget.NewButtonWithIcon("", theme.ContentAddIcon(), func() {
 		adhocTime += 60 * 5
 		adhocbtn.SetText("Ad Hoc (" + strconv.Itoa(adhocTime/60) + ")")
@@ -581,46 +706,58 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 		menu.Refresh()
 		a.Preferences().SetInt("adhoc.default", adhocTime)
 	})
-	more.Importance = widget.WarningImportance // orange
-	endset := widget.NewButtonWithIcon("", theme.RadioButtonIcon(), func() {
-		setEndTime(a, w, bg, "set")
-		now := time.Now()
-		endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
-		// a.Preferences().SetInt("endTime.default", endTime)
-	})
-	endset.Importance = widget.WarningImportance // orange
+	more.Importance = widget.DangerImportance // red
 
-	lessmoreRow := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer(), endset)
-
-	lunch := widget.NewButton("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
+	lunchBtn = widget.NewButton("Lunch ("+strconv.Itoa(lunchTime/60)+")", func() {
 		startTimer(lunchTime, "Lunch", w.Canvas(), w)
 	})
-	lunch.Importance = widget.SuccessImportance // green
-	biobreak := widget.NewButton("Bio Break ("+strconv.Itoa(biobreakTime/60)+")", func() {
+	lunchBtn.Importance = widget.SuccessImportance // green
+	biobreakBtn = widget.NewButton("Bio Break ("+strconv.Itoa(biobreakTime/60)+")", func() {
 		startTimer(biobreakTime, "Bio Break", w.Canvas(), w)
 	})
-	biobreak.Importance = widget.MediumImportance // white
+	biobreakBtn.Importance = widget.MediumImportance // white
 	adhocbtn = widget.NewButton("Ad Hoc ("+strconv.Itoa(adhocTime/60)+")", func() {
 		startTimer(adhocTime, "Ad Hoc", w.Canvas(), w)
 	})
-	adhocbtn.Importance = widget.WarningImportance // orange
+	adhocbtn.Importance = widget.DangerImportance // red to match +/- buttons
+
+	// Ad hoc +/- buttons row
+	adhocControls := container.NewHBox(container.NewCenter(less), container.NewCenter(more), layout.NewSpacer())
+
 	endtime := widget.NewButton("Selected End Time", func() {
-		now := time.Now()
-		endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
-		if endTimeSec <= 60 {
-			playBeep("ding")
-			setEndTime(a, w, bg, "run")
-			now := time.Now()
-			endTimeSec = (customTime.Hour()*60*60 + customTime.Minute()*60) - (now.Hour()*60*60 + now.Minute()*60 + now.Second())
-		} else {
-			now := time.Now()
-			endTime = time.Date(now.Year(), now.Month(), now.Day(), customTime.Hour(), customTime.Minute(), 0, 0, now.Location())
-			startTimer(endTimeSec, "Selected End Time", w.Canvas(), w)
-		}
+		// Always open the dialog - it will start the timer automatically when time is set
+		setEndTime(a, w, bg, true)
 	})
 	endtime.Importance = widget.WarningImportance // orange
 
-	content := container.NewCenter(container.NewVBox(container.NewGridWithColumns(2, biobreak, lunch, adhocbtn, endtime), lessmoreRow))
+	elapsedBtn = widget.NewButton("Elapsed Time", func() {
+		startElapsedTimer(w.Canvas(), w)
+	})
+	elapsedBtn.Importance = widget.WarningImportance // orange
+
+	// Set up listener for enabling/disabling timer menu items when a timer is running
+	running.AddListener(binding.NewDataListener(func() {
+		busy, _ := running.Get()
+		lunchMenu.Disabled = busy
+		biobreakMenu.Disabled = busy
+		adhocmnu.Disabled = busy
+		selectedMenu.Disabled = busy
+		elapsedMenu.Disabled = busy
+		stopMenu.Disabled = !busy
+		menu.Refresh()
+	}))
+
+	// Layout: Grid with biobreak/lunch in row 1, adhoc/endtime in row 2
+	// Then adhocControls under adhoc, and elapsed under endtime
+	// Create containers to align elapsed under endtime and controls under adhoc
+	leftColumn := container.NewVBox(adhocbtn, adhocControls)
+	rightColumn := container.NewVBox(endtime, elapsedBtn)
+
+	// Recreate grid with the column containers
+	topRow := container.NewGridWithColumns(2, biobreakBtn, lunchBtn)
+	bottomRow := container.NewGridWithColumns(2, leftColumn, rightColumn)
+
+	content := container.NewCenter(container.NewVBox(topRow, bottomRow))
 
 	bg := canvas.NewImageFromResource(resourceSchoolBoard1Png)
 	if strings.HasSuffix(timerbg, ".png") || strings.HasSuffix(timerbg, ".jpg") {
@@ -665,255 +802,19 @@ Windows: ~\AppData\Roaming\fyne\com.github.amarillier.KrankyBearTimer/preference
 	// w.Resize(fyne.NewSize(content.MinSize().Width*2.2, content.MinSize().Height*2.2))
 	bg.FillMode = canvas.ImageFillContain
 	// bg.FillMode = canvas.ImageFillOriginal
-	bg.Translucency = 0.5 // 0.85
+	bg.Translucency = 0.5                                            // 0.85
+	timerBgImage = bg                                                // store reference for dynamic updates
+	timerContent = container.NewPadded(container.NewPadded(content)) // store content reference for dynamic updates
 	w.SetContent(container.NewStack(
 		bg,
-		container.NewPadded(container.NewPadded(content))))
+		timerContent))
 	w.ShowAndRun()
 	if updt != nil {
 		updt.RequestFocus()
 	}
 }
 
-func formatTimer(time int) string {
-	secs := time % 60
-	mins := (time - secs) / 60
-	return fmt.Sprintf("%02d:%02d", mins, secs)
-}
-
-func centerTime(t *widget.RichText) fyne.CanvasObject {
-	return container.New(layout.NewCenterLayout(), t)
-}
-
-func padTime(t *widget.RichText) fyne.CanvasObject {
-	pad := theme.Padding()
-	return container.New(layout.NewCustomPaddedLayout(-3.5*pad, -2.5*pad, pad, pad), t)
-}
-
-func startTimer(timer int, name string, c fyne.Canvas, w fyne.Window) {
-	remain = timer
-	busy, _ := running.Get()
-	if busy {
-		return
-	}
-	w.SetTitle(appName + ": " + name)
-	running.Set(true)
-
-	if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-		desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
-		systray.SetTooltip(appName)
-		// systray.SetTitle(timerName)
-	}
-
-	ticker := widget.NewRichText()
-	fyne.Do(func() {
-		updateTime(ticker, remain)
-	})
-
-	stop := widget.NewButton("Stop", nil)
-	overlay := container.NewPadded(container.NewVBox(
-		// padTime(ticker),
-		centerTime(ticker),
-		stop))
-	p := widget.NewModalPopUp(overlay, c)
-	//p.Resize(fyne.NewSize(300, 100))
-	overlay.Resize(fyne.NewSize(100, 100))
-	p.Resize(fyne.NewSize(w.Canvas().Size().Width*0.5, w.Canvas().Size().Height*0.5))
-	stop.OnTapped = func() {
-		remain = -1 // don't notify
-		w.SetTitle(appName)
-		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
-			systray.SetTooltip(appName)
-			systray.SetTitle("")
-			stop.Disable()
-		}
-		p.Hide()
-	}
-	go func() {
-		for remain > 0 {
-			fyne.Do(func() {
-				updateTime(ticker, remain)
-			})
-			// system tray tooltip is not supported on Windows!
-			if traytimer == 1 && runtime.GOOS != "windows" {
-				if _, ok := fyne.CurrentApp().(desktop.App); ok {
-					systray.SetTitle(formatTimer(remain))
-				}
-			}
-			if remain == 60 {
-				w.Show() // in case it has been hidden
-				if sound == 1 {
-					switch oneminsnd {
-					case "up", "down", "updown", "ding":
-						playBeep(oneminsnd) // built in sounds
-					default:
-						if !checkFileExists(sndDir + "/" + oneminsnd) {
-							playBeep("up")
-						} else {
-							playMp3(sndDir + "/" + oneminsnd) // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
-						}
-					}
-				}
-			} else if remain == 30 {
-				w.Show() // in case it has been hidden
-				if sound == 1 {
-					switch halfminsnd {
-					case "up", "down", "updown", "ding":
-						playBeep(halfminsnd) // built in sounds
-					default:
-						if !checkFileExists(sndDir + "/" + halfminsnd) {
-							for j := 0; j <= 2; j++ {
-								playBeep("down")
-							}
-						} else {
-							playMp3(sndDir + "/" + halfminsnd) // Basso, Blow, Hero, Funk, Glass, Ping, Purr, Sosumi, Submarine,
-						}
-					}
-				}
-			}
-
-			remain--
-			time.Sleep(time.Second)
-		}
-		fyne.Do(func() {
-			w.SetTitle(appName)
-		})
-
-		running.Set(false)
-		if remain == 0 {
-			updateTime(ticker, remain)
-			stop.Disable()
-			w.Show() // in case it has been hidden
-			if notify == 1 {
-				fyne.CurrentApp().SendNotification(fyne.NewNotification(name+" done", "Your "+strings.ToLower(name)+" timer finished"))
-				if sound == 1 {
-					switch endsnd {
-					case "up", "down", "updown", "ding":
-						playBeep(endsnd) // built in sounds
-					default:
-						if !checkFileExists(sndDir + "/" + endsnd) {
-							playBeep("updown")
-							for i := 0; i < 3; i++ {
-							}
-						} else {
-							playMp3(sndDir + "/" + endsnd) // grandfatherClock, baseball, pinball
-						}
-					}
-				}
-				for i := 0; i < 3; i++ {
-					w.Hide()
-					time.Sleep(time.Second / 2)
-					w.Show()
-					time.Sleep(time.Second / 2)
-				}
-			}
-		}
-		if desk, ok := fyne.CurrentApp().(desktop.App); ok {
-			desk.SetSystemTrayIcon(resourceKrankyBearFedoraRedPng)
-			systray.SetTooltip(appName)
-			systray.SetTitle("")
-		}
-		p.Hide()
-	}()
-	p.Show()
-}
-
-func updateTime(out *widget.RichText, time int) {
-	out.ParseMarkdown("# " + formatTimer(time))
-	themeTimer(out, time)
-}
-
-func setEndTime(a fyne.App, w fyne.Window, bg fyne.Canvas, caller string) {
-	var selectedTime time.Time
-	var current string
-
-	e := a.NewWindow("Select End Time")
-	// Set window size to fit the input prompt
-	e.Resize(fyne.NewSize(300, 150))
-	now := time.Now()
-
-	// check to see if predefined end / custom time is still
-	// in the future, if not, set to the current time. If it is future,
-	// default to that future time
-	if customTime.Before(now) {
-		current = fmt.Sprintf("%02d:%02d", now.Hour(), now.Minute()+5)
-	} else {
-		current = fmt.Sprintf("%02d:%02d", customTime.Hour(), customTime.Minute())
-	}
-
-	// Create a time entry widget
-	timeEntry := widget.NewEntry()
-	timeEntry.SetPlaceHolder(current)
-	timeEntry.SetText(current)
-
-	// Create a label to display messages
-	messageLabel := widget.NewLabel("")
-
-	// Create a button to submit the time
-	submitButton := widget.NewButton("Set", func() {
-		enteredTime := timeEntry.Text
-		if isValidCustomTime(enteredTime, "custom") {
-			selectedTime, _ = time.Parse("15:04", enteredTime)
-			customTime = time.Date(now.Year(), now.Month(), now.Day(), selectedTime.Hour(), selectedTime.Minute(), 0, 0, now.Location())
-			if caller == "set" {
-				messageLabel.SetText("Custom time: " + customTime.Format("Mon Jan 2 15:04:05 MST 2006"))
-				time.Sleep(1 * time.Second)
-			} else {
-				messageLabel.SetText("Custom time: " + customTime.Format("Mon Jan 2 15:04:05 MST 2006"+"\n\nTime has been set\nPress the Selected End Time button again\nwhen ready to run the timer"))
-				time.Sleep(4 * time.Second)
-			}
-			e.Close()
-		} else {
-			messageLabel.SetText("Enter a valid future time (HH:MM) at least 5 minutes from now")
-		}
-	})
-
-	// Arrange the widgets in a vertical box
-	content := container.NewVBox(
-		timeEntry,
-		submitButton,
-		messageLabel,
-	)
-
-	e.SetContent(content)
-	e.CenterOnScreen() // run centered on primary (laptop) display
-	e.Show()
-	endTime = customTime
-}
-
-// isValidCustomTime checks if the entered time is valid in 24-hour format
-// and / or is in the future compared to the current time.
-func isValidCustomTime(t string, test string) bool {
-	parts := strings.Split(t, ":")
-	if len(parts) != 2 {
-		return false
-	}
-
-	hours, err1 := strconv.Atoi(parts[0])
-	minutes, err2 := strconv.Atoi(parts[1])
-
-	if err1 != nil || err2 != nil {
-		return false
-	}
-
-	if test == "custom" {
-		now := time.Now()
-		// allow 5 minute buffer, force selected time at least 5 minutes after current time
-		customTime = time.Date(now.Year(), now.Month(), now.Day(), hours, minutes-5, 0, 0, now.Location())
-		if customTime.After(now) {
-			return true
-		} else {
-			return false
-		}
-	} else {
-		if hours < 0 || hours > 23 || minutes < 0 || minutes > 59 {
-			return false
-		} else {
-			return true
-		}
-	}
-}
+// Timer functions moved to timer.go: formatTimer, centerTime, padTime, startTimer, updateTime, setEndTime, isValidCustomTime, updateTimerBackground
 
 func updateAlert(a fyne.App, updtmsg string) {
 	// open a window to show the update message
@@ -954,7 +855,12 @@ func updateAlert(a fyne.App, updtmsg string) {
 	text := widget.NewLabel(updtmsg)
 	content := container.NewVBox(kbimg, text, myreleaselink, myreleasenoteslink)
 	updt = a.NewWindow(appName + ": Update Check")
-	updt.SetIcon(resourceKrankyBearBeretPng)
+	_, month, _ := time.Now().Date()
+	if month == time.December {
+		updt.SetIcon(resourceKrankyBearChristmasGrinchPng)
+	} else {
+		updt.SetIcon(resourceKrankyBearBeretPng)
+	}
 	updt.Resize(fyne.NewSize(50, 100))
 	updt.SetContent(content)
 	updt.SetCloseIntercept(func() {
@@ -965,14 +871,8 @@ func updateAlert(a fyne.App, updtmsg string) {
 	updt.Show()
 }
 
+// updateTimerBackground moved to timer.go
+
 // "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942
 
 // This timer is based on an original project named Fomato by Andy Williams, and heavily redeveloped - Allan Marillier, 2024
-
-/*
-To-do:
-- Allow optional always on top, save in prefs - may not be possible on Mac
-https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+on+top&gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIKCAEQABiABBiiBDIKCAIQABiABBiiBDIKCAMQABiABBiiBDIKCAQQABiABBiiBNIBCDg5MTBqMGoxqAIAsAIA&sourceid=chrome&ie=UTF-8
-- Known problems - needs OpenGL drivers on some Windows
--
-*/

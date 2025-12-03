@@ -12,6 +12,9 @@ import (
 	"github.com/gopxl/beep/v2/wav"
 )
 
+// Speaker sample rate initialized at application launch
+var speakerSampleRate = beep.SampleRate(48000)
+
 func playMp3(name string) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -31,10 +34,15 @@ func playMp3(name string) {
 	}
 	defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	// Speaker already initialized at application launch
+	// Resample if format sample rate differs
+	var resampled beep.Streamer = streamer
+	if format.SampleRate != speakerSampleRate {
+		resampled = beep.Resample(4, format.SampleRate, speakerSampleRate, streamer)
+	}
 
 	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+	speaker.Play(beep.Seq(resampled, beep.Callback(func() {
 		done <- true
 	})))
 
@@ -83,10 +91,15 @@ func playWav(name string) {
 	}
 	defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+	// Speaker already initialized at application launch
+	// Resample if format sample rate differs
+	var resampled beep.Streamer = streamer
+	if format.SampleRate != speakerSampleRate {
+		resampled = beep.Resample(4, format.SampleRate, speakerSampleRate, streamer)
+	}
 
 	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+	speaker.Play(beep.Seq(resampled, beep.Callback(func() {
 		done <- true
 	})))
 
@@ -95,8 +108,8 @@ func playWav(name string) {
 
 func playBeep(style string) {
 	// accept updown, up, down, ding
-	sr := beep.SampleRate(48000)
-	speaker.Init(sr, 4800)
+	// Speaker already initialized at application launch
+	sr := speakerSampleRate
 
 	ch := make(chan struct{})
 	buzzer1, _ := generators.SawtoothTone(sr, float64(750))

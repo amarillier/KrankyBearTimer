@@ -3,6 +3,12 @@
 # Sets an icon on file or directory - specifically, use for adding to dmg
 # Usage setIcon.sh iconimage.jpg /path/to/[file|folder]
 
+if [ $# -eq 0 ]
+then
+    echo "Usage: setIcon.sh iconimage.jpg /path/to/[file|folder]"
+    exit 1
+fi
+
 iconSource=$1
 iconDestination=$2
 icon=/tmp/$(basename $iconSource)
@@ -37,3 +43,5 @@ fi
 #osascript -e 'tell application "Finder" to activate'
 
 rm $rsrc $icon 
+
+# "Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning." Winston Churchill, November 10, 1942

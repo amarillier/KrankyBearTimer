@@ -1,4 +1,0 @@
-0.9.3
-- Manual preferences edit, menu item - be cautious using this, GUI settings is safer
-- Mouse jiggler - we all know what that means! Don't be reckless, lock your computer
-- Portable versions, executables named simply timer, timer.exe inside the .zip files

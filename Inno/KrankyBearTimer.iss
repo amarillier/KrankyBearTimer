@@ -2,10 +2,10 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KrankyBearTimer"
-#define MyAppVersion "0.9.3"
+#define MyAppVersion "0.9.5"
 #define MyAppPublisher "Allan Marillier, 2024-2025"
 #define MyAppURL "https://github.com/amarillier/KrankyBearTimer"
-#define MyAppExeName "KrankyBearTimer.exe"
+#define MyAppExeName "KrankyBearTimer-windows.exe"
 #define MyAppAssocName MyAppName + ""
 #define MyAppAssocExt ".exe"
 #define MyAppAssocKey StringChange(MyAppAssocName, " ", "") + MyAppAssocExt
@@ -30,7 +30,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DisableDirPage=yes
 ChangesAssociations=yes
 DisableProgramGroupPage=yes
-LicenseFile=C:\Allan\Source\go\KrankyBearTimer\license.txt
+LicenseFile=C:\Allan\Source\go\KrankyBearTimer\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog

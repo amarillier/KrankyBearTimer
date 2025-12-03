@@ -1,22 +1,40 @@
 Release notes
 0.9.NEXT
-ToDo
-====
-Timer
-- audio.go and util.go to a separate module, they are identical between apps
-- Improve selected end time mechanism to avoid having to set, then start the timer
+Timer:
 - Possibly add homebrew / choco packages
+Clock:
+- 
+
+
+0.9.5
+
+- Clock and timer color / background changes now happen immediately, no need to exit and restart any more
+- “Days until” countdown display, up to 3 future dates supported
+- Optional extra time zones (5) to display in clock
+- Improved selected end time mechanism to avoid having to set, then start the timer
+- Preferences remember previous selected end time and default that for easy daily reuse of the same selected end time
+- Running timer pause/resume options in addition to stop
+- 0.9.5
+- Clock and timer color / background changes now happen immediately, no need to exit and restart any more
+- “Days until” countdown display, up to 3 future dates supported
+- Optional extra time zones (5) to display in clock
+- Improved selected end time mechanism to avoid having to set, then start the timer
+- Preferences remember previous selected end time and default that for easy daily reuse of the same selected end time
+- Running timer pause/resume options in addition to stop
 - Elapsed time option
-- Troll idea: :-) add a quit window that makes people type :wq! to exit the app
-    - Some people will know what / who I mean by this. No, I would likely not really do this
+- Optional alarms - up to 5, one time, daily selectable repeat interval
+- Meteo weather API and geolocation to get current location information, and also allow Meteo API location lookup
+- Optional alarms - up to 5, one time, daily selectable repeat interval
+- Countdown timer and alarms settings maintain the same color schemes as the clock, and adjust automatically when clock color settings change
+- Meteo weather API and geolocation to get current location information, and also allow Meteo API location lookup
+- When weather is enabled in the weather menu, it will also be updated dynamically in the clock window below all optional time zones
+- Mac .dmg packaging changed to .pkg packaging, with Info.plist included but renamed to Info-plist.txt to avoid conflict with IT teams where Info.plist is considered unapproved for whatever reasons
+- Added Linux builds with .deb and .rpm packages, as well as portable app versions
 
-
-Clock
-- Possible "days until ..." calculation, optional display via settings in clock
-- Possible optional extra time zones to display in clock
-- Possible optional alarms similar to phone - one time, repeat interval in clock
-- Possible add API to get current location temperature? in clock
-
+0.9.4
+- jiggler connected to mute on/off to stop jiggling when auto mute activates
+- December icon / image changes, just for fun
+- 
 
 0.9.3
 - Manual preferences edit, menu item - be cautious using this, GUI settings is safer

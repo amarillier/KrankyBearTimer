@@ -33,7 +33,7 @@ https://www.google.com/search?q=fyne+golang+always+on+top&oq=fyne+golang+always+
 
 
 # License
-See license.txt
+See LICENSE - GPL v3
 This is 100% free for anyone to use or misuse any way you like with no warranty as
 to suitability or anything else, other than it has no viruses when I compile and
 commit to git. But you should always check and scan anything you download from the
