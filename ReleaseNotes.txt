@@ -1,7 +1,7 @@
 Release notes
 0.9.NEXT
 Timer:
-- Possibly add homebrew / choco packages
+- Possibly add homebrew / choco packages, maybe also Ubuntu snap
 Clock:
 - 
 
