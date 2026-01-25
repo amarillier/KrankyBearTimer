@@ -3,8 +3,8 @@ module github.com/amarillier/KrankyBearTimer
 go 1.24.2
 
 require (
-	fyne.io/fyne/v2 v2.7.1
-	fyne.io/systray v1.11.1-0.20250603113521-ca66a66d8b58
+	fyne.io/fyne/v2 v2.7.2
+	fyne.io/systray v1.12.0
 	github.com/IamFaizanKhalid/lock v0.0.0-20230619061933-b7c5d274b8f7
 	github.com/amarillier/go-update-checker v0.0.3
 	github.com/go-vgo/robotgo v0.110.8

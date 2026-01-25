@@ -17,7 +17,6 @@ bin/*
 build/*
 *.sh
 installers/*
-installers2/*
 !installers/Readme.txt
 KrankyBearTimer.app
 KrankyBearTimer
