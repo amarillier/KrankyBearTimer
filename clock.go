@@ -149,6 +149,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		offsetString := fmt.Sprintf(" (local is  %+02d:%02d)", offsetHours, offsetMinutes) // ZZZ
 		// utcFormat := `(UTC 3:04 PM Z07)`
 		utcFormat := `UTC 3:04 PM` //   (` + offsetString + `)`  // ZZZ
+		nonutcFormat := `3:04 PM`
 		dateFormat := ` Monday, January 2, 2006 `
 
 		// nowtime := canvas.NewText(now.Format(timeFormat), color.RGBA{R: 255, G: 123, B: 31, A: 255})
@@ -256,6 +257,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 					muted, _ := volume.GetMuted()
 					jiggleconf = jiggle
 					jiggle = 0 // disable jiggle while muted
+					lastJiggleMinute = -1
 					if !muted {
 						currentvolume, _ = volume.GetVolume()
 						volume.Mute()
@@ -265,6 +267,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 				if automute == 1 {
 					muted, _ := volume.GetMuted()
 					jiggle = jiggleconf // restore jiggle value
+					lastJiggleMinute = -1
 					jiggleconf = 0
 					if muted {
 						volume.Unmute()
@@ -300,11 +303,17 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 				nowtime.Refresh()
 				nowdate.Refresh()
 				// if screen is not locked and jiggle is on and minute modulo jiggle ...
-				if !lock.IsScreenLocked() && jiggle != 0 && now.Minute()%jiggle == 0 {
-					robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
-					robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
-					robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
-					robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+				if jiggle == 0 {
+					lastJiggleMinute = -1
+				}
+				if !lock.IsScreenLocked() && jiggle > 0 && now.Minute()%jiggle == 0 {
+					if now.Minute() != lastJiggleMinute {
+						robotgo.MoveRelative(1, 0)  // MoveSmoothRelative(200, 0)
+						robotgo.MoveRelative(0, 1)  // MoveSmoothRelative(0, 200)
+						robotgo.MoveRelative(-1, 0) // MoveSmoothRelative(-200, 0)
+						robotgo.MoveRelative(0, -1) // MoveSmoothRelative(0, -200)
+						lastJiggleMinute = now.Minute()
+					}
 				}
 			})
 			nowdate.Text = now.Format(dateFormat)
@@ -355,15 +364,15 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 				return hours, minutes, true
 			}
 
-			// Helper function to format timezone time (same format as UTC)
+			// Helper function to format timezone time (without UTC prefix)
 			formatTimezoneTime := func(tzTime time.Time, tzName string) string {
 				_, tzOffset := tzTime.Zone()
 				tzOffsetHours := tzOffset / 3600
 				tzOffsetMinutes := (tzOffset % 3600) / 60
 				tzOffsetString := fmt.Sprintf(" (%s %+02d:%02d)", tzName, tzOffsetHours, tzOffsetMinutes)
 
-				// Use same format as UTC time
-				return tzTime.Format(utcFormat) + tzOffsetString
+				// Use non-UTC format for timezone time
+				return tzTime.Format(nonutcFormat) + tzOffsetString
 			}
 
 			// Helper function to format timezone time from UTC offset
@@ -372,7 +381,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 				if offsetLabel != "" {
 					tzOffsetString = fmt.Sprintf(" (%s UTC%+02d:%02d)", offsetLabel, offsetHours, offsetMinutes)
 				}
-				return tzTime.Format(utcFormat) + tzOffsetString
+				return tzTime.Format(nonutcFormat) + tzOffsetString
 			}
 
 			// Update additional timezones
@@ -853,15 +862,15 @@ func updateTimezoneText() {
 		return hours, minutes, true
 	}
 
-	// Helper function to format timezone time (same format as UTC)
+	// Helper function to format timezone time (without UTC prefix)
 	formatTimezoneTime := func(tzTime time.Time, tzName string) string {
 		_, tzOffset := tzTime.Zone()
 		tzOffsetHours := tzOffset / 3600
 		tzOffsetMinutes := (tzOffset % 3600) / 60
 		tzOffsetString := fmt.Sprintf(" (%s %+02d:%02d)", tzName, tzOffsetHours, tzOffsetMinutes)
 
-		utcFormat := `UTC 3:04 PM`
-		return tzTime.Format(utcFormat) + tzOffsetString
+		nonutcFormat := `3:04 PM`
+		return tzTime.Format(nonutcFormat) + tzOffsetString
 	}
 
 	// Helper function to format timezone time from UTC offset
@@ -870,8 +879,8 @@ func updateTimezoneText() {
 		if offsetLabel != "" {
 			tzOffsetString = fmt.Sprintf(" (%s UTC%+02d:%02d)", offsetLabel, offsetHours, offsetMinutes)
 		}
-		utcFormat := `UTC 3:04 PM`
-		return tzTime.Format(utcFormat) + tzOffsetString
+		nonutcFormat := `3:04 PM`
+		return tzTime.Format(nonutcFormat) + tzOffsetString
 	}
 
 	// Update timezone text elements if they exist and are enabled

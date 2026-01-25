@@ -117,6 +117,8 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			a.Preferences().SetInt("showutc.default", showutc)
 			// Note: Clock window needs to be reopened to show/hide UTC
 		})
+		initializing := true
+
 		showhr1224 := widget.NewRadioGroup([]string{"12", "24"}, func(value string) {
 			if debug == 1 {
 				log.Println("12 / 24 time set to", value)
@@ -137,6 +139,9 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			}
 			jiggle, _ = strconv.Atoi(value)
 			a.Preferences().SetInt("jiggle.default", jiggle)
+			if !initializing {
+				lastJiggleMinute = -1
+			}
 		})
 		jiggler.Horizontal = true
 		mute := widget.NewCheck("", func(value bool) {
@@ -367,9 +372,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		var tz1Select, tz2Select, tz3Select, tz4Select, tz5Select *widget.Select
 		var tz1OffsetEntry, tz2OffsetEntry, tz3OffsetEntry, tz4OffsetEntry, tz5OffsetEntry *widget.Entry
 
-		// Flag to prevent handlers from firing during initialization
-		initializing := true
-
 		reset := widget.NewButton("Reset defaults", func() {
 			if debug == 1 {
 				log.Println("preferences reset to defaults")
@@ -381,6 +383,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			showut.SetChecked(true)
 			showhr1224.SetSelected("12")
 			jiggler.SetSelected("0")
+			lastJiggleMinute = -1
 			lockmute.SetChecked(false)
 			mute.SetChecked(false)
 			muteonhr = 18
@@ -716,25 +719,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		// Mark initialization as complete - handlers can now fire normally
 		initializing = false
 
-		setform := widget.NewForm(
-			widget.NewFormItem("Show Seconds", showsec),
-			widget.NewFormItem("Show Timezone", showtz),
-			widget.NewFormItem("Show Date", showdt),
-			widget.NewFormItem("Show UTC", showut),
-			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
-			widget.NewFormItem("Mouse jiggler", jiggler),
-			widget.NewFormItem("Auto Start with Timer", startwithtimer),
-			widget.NewFormItem("Hourly Chime", chime),
-			widget.NewFormItem("Hourly Chime Sound", chimesound),
-			widget.NewFormItem("Lock Mute Volume", lockmute),
-			widget.NewFormItem("Auto Mute Volume", mute),
-			widget.NewFormItem("Additional Timezones", widget.NewLabel("")),
-			tz1Row,
-			tz2Row,
-			tz3Row,
-			tz4Row,
-			tz5Row,
-		)
 		muteonlabel = fmt.Sprintf("%02d:%02d", muteonhr, muteonmin)
 		muteonbutton = widget.NewButton("Mute: "+muteonlabel, func() {
 			muteon := selectTime(a, w, bg, "muteon", muteonhr, muteonmin)
@@ -754,8 +738,27 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			// a.Preferences().SetInt("muteoffhr.default", muteoffhr)
 			// a.Preferences().SetInt("muteoffmin.default", muteoffmin)
 		})
-		mwidget := container.NewHBox(
-			muteonbutton, muteoffbutton)
+		mwidget := container.NewHBox(muteonbutton, muteoffbutton)
+		autoMuteSection := container.NewVBox(mute, mwidget)
+		setform := widget.NewForm(
+			widget.NewFormItem("Show Seconds", showsec),
+			widget.NewFormItem("Show Timezone", showtz),
+			widget.NewFormItem("Show Date", showdt),
+			widget.NewFormItem("Show UTC", showut),
+			widget.NewFormItem("Show 12/24 Hour Time", showhr1224),
+			widget.NewFormItem("Mouse jiggler", jiggler),
+			widget.NewFormItem("Auto Start with Timer", startwithtimer),
+			widget.NewFormItem("Hourly Chime", chime),
+			widget.NewFormItem("Hourly Chime Sound", chimesound),
+			widget.NewFormItem("Lock Mute Volume", lockmute),
+			widget.NewFormItem("Auto Mute Volume", autoMuteSection),
+			widget.NewFormItem("Additional Timezones", widget.NewLabel("")),
+			tz1Row,
+			tz2Row,
+			tz3Row,
+			tz4Row,
+			tz5Row,
+		)
 		tcbutton := widget.NewButton("Time Color", func() {
 			tcolor := colorPicker(settingsc, "time", a)
 			if debug == 1 {
@@ -798,7 +801,6 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			ucbutton)
 
 		display := widget.NewForm(
-			widget.NewFormItem("", mwidget),
 			widget.NewFormItem("Time size", twidget),
 			widget.NewFormItem("Date size", dwidget),
 			widget.NewFormItem("UTC size", uwidget),

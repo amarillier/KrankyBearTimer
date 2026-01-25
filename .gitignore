@@ -4,7 +4,7 @@
 *id_dsa*
 authorized_keys*
 IAM*
-.DS_Store
+.DS_Store/*
 .vscode
 original/*
 sensors/*.ps1
@@ -13,11 +13,15 @@ sensors/*.sh
 templates/*
 test/*
 tst/*
-!bin/*
-sync*
+bin/*
+build/*
+*.sh
 installers/*
+installers2/*
+!installers/Readme.txt
 KrankyBearTimer.app
 KrankyBearTimer
+KrankyBearTimer.exe
 UNUSED/*
 ResourcesUnused/*
 Resources/*.txt
@@ -27,8 +31,8 @@ latestcheck.json
 DEPRECATED/*
 
 # Distribution / packaging
-!*.zip
-!*.exe
+*.zip
+*.exe
 *.dmg
 
 # go modules, we should be able to get all of these any time
@@ -42,4 +46,3 @@ vendor/*
 # ALLOW example
 !MicrosoftDefender.zip
 !packages/7z*
-!installers/*
