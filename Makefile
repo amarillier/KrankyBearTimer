@@ -30,8 +30,8 @@ lint:
 .PHONY:lint
 
 tidy:
+	go mod download
 	go mod tidy
-	go mod vendor
 	go mod verify
 .PHONY:tidy
 

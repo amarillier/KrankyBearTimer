@@ -5,6 +5,9 @@ Timer:
 Clock:
 - 
 
+0.9.7
+- Recompile with updated libraries to fix vulnerability
+
 0.9.6
 - Minor change in clock settings to position auto mute / unmute time widgets directly under the auto mute volume checkbox
 - Improved jiggler logic

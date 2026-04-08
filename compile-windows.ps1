@@ -48,18 +48,6 @@ if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-# Check for module and other dependencies
-if (-not (Test-Path "vendor/modules.txt")) {
-    Write-Host "Error: vendor/modules.txt not found. Running prepare-deps.ps1 first which may take a while." -ForegroundColor Red
-    .\prepare-deps.ps1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ prepare-deps.ps1 completed successfully" -ForegroundColor Green
-    } else {
-        Write-Host "✗ prepare-deps.ps1 failed" -ForegroundColor Red
-        exit 1
-    }
-}
-
 # Display Go version
 $goVersion = go version
 Write-Host "Using: $goVersion" -ForegroundColor Green
@@ -67,8 +55,8 @@ Write-Host ""
 
 # fast update fyne before compile
 go get fyne.io/fyne/v2@latest # or a specific version like @v2.4.0
+go mod download
 go mod tidy
-go mod vendor
 
 # Verify winres make is installed and run
 go install github.com/tc-hib/go-winres@latest

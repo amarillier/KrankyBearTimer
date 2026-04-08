@@ -74,10 +74,10 @@ try {
 }
 Write-Host ""
 
-Write-Host "Step 4: Creating vendor directory..." -ForegroundColor Yellow
-Write-Host "Running: go mod vendor"
+Write-Host "Step 4: Updating vendor directory..." -ForegroundColor Yellow
+Write-Host "Running: go mod download"
 try {
-    & go mod vendor
+    & go mod download
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Vendor directory created successfully" -ForegroundColor Green
     } else {
@@ -134,7 +134,7 @@ Write-Host "  • Indirect dependencies: $indirectDeps"
 Write-Host "  • Vendor packages: $vendorCount"
 Write-Host ""
 Write-Host "You can now build the application with:" -ForegroundColor Green
-Write-Host "  go build -mod=vendor -o KrankyBearTimer.exe"
+Write-Host "  go build -o KrankyBearTimer.exe"
 Write-Host ""
 
 # Now this is not the end. It is not even the beginning of the end. But it is, perhaps, the end of the beginning. - Winston Churchill, November 10, 1942
