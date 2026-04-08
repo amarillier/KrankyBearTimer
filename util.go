@@ -36,6 +36,14 @@ func checkFileExists(filePath string) bool {
 	return !errors.Is(error, os.ErrNotExist)
 }
 
+// wallClockMinuteKey is a unique local date + hour:minute for deduping scheduled
+// mute/chime actions when updateClock may run later than second 0.
+func wallClockMinuteKey(t time.Time) int64 {
+	y, m, d := t.Date()
+	return int64(y)*1_000_000_000 + int64(m)*10_000_000 + int64(d)*100_000 +
+		int64(t.Hour())*100 + int64(t.Minute())
+}
+
 func daysUntil(targetDate string) (int, error) {
 	// Parse the target date
 	layout := "2006-01-02"

@@ -30,7 +30,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Timer"
-	appVersion = "0.9.7" // see FyneApp.toml
+	appVersion = "0.9.8" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
@@ -90,6 +90,8 @@ var startclock int
 var processName string
 var prefs string
 var lastChimeHour int = -1              // Track last hour when chime played to prevent double playback
+var lastAutomuteOnKey int64 = -1        // wallClockMinuteKey for last automute-on transition
+var lastAutomuteOffKey int64 = -1       // wallClockMinuteKey for last automute-off transition
 var clockUpdateLoopRunning bool = false // Prevent multiple update loops from running
 var clockUpdateLoopStop chan bool       // Channel to stop the update loop
 var hourChimeFileExists bool = false    // Cache file existence check
@@ -870,6 +872,11 @@ func updateAlert(a fyne.App, updtmsg string) {
 	})
 	// updt.CenterOnScreen() // run centered on primary (laptop) display
 	updt.Show()
+}
+
+func resetAutomuteScheduleDedupe() {
+	lastAutomuteOnKey = -1
+	lastAutomuteOffKey = -1
 }
 
 // updateTimerBackground moved to timer.go

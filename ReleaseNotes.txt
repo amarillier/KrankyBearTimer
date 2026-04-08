@@ -5,6 +5,9 @@ Timer:
 Clock:
 - 
 
+0.9.8
+- minor changes to clock functions
+
 0.9.7
 - Recompile with updated libraries to fix vulnerability
 

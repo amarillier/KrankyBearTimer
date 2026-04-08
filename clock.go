@@ -252,33 +252,39 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 
 		updateClock := func() {
 			now = time.Now()
-			if now.Hour() == muteonhr && now.Minute() == muteonmin && now.Second() == 0 {
-				if automute == 1 {
-					muted, _ := volume.GetMuted()
-					jiggleconf = jiggle
-					jiggle = 0 // disable jiggle while muted
-					lastJiggleMinute = -1
-					if !muted {
-						currentvolume, _ = volume.GetVolume()
-						volume.Mute()
+			if automute == 1 {
+				if now.Hour() == muteonhr && now.Minute() == muteonmin {
+					k := wallClockMinuteKey(now)
+					if k != lastAutomuteOnKey {
+						lastAutomuteOnKey = k
+						muted, _ := volume.GetMuted()
+						jiggleconf = jiggle
+						jiggle = 0 // disable jiggle while muted
+						lastJiggleMinute = -1
+						if !muted {
+							currentvolume, _ = volume.GetVolume()
+							volume.Mute()
+						}
 					}
-				}
-			} else if now.Hour() == muteoffhr && now.Minute() == muteoffmin && now.Second() == 0 {
-				if automute == 1 {
-					muted, _ := volume.GetMuted()
-					jiggle = jiggleconf // restore jiggle value
-					lastJiggleMinute = -1
-					jiggleconf = 0
-					if muted {
-						volume.Unmute()
-						// volume.SetVolume(20)
-						volume.SetVolume(currentvolume)
+				} else if now.Hour() == muteoffhr && now.Minute() == muteoffmin {
+					k := wallClockMinuteKey(now)
+					if k != lastAutomuteOffKey {
+						lastAutomuteOffKey = k
+						muted, _ := volume.GetMuted()
+						jiggle = jiggleconf // restore jiggle value
+						lastJiggleMinute = -1
+						jiggleconf = 0
+						if muted {
+							volume.Unmute()
+							// volume.SetVolume(20)
+							volume.SetVolume(currentvolume)
+						}
 					}
 				}
 			}
-			if now.Minute() == 0 && now.Second() == 0 {
+			if now.Minute() == 0 {
 				if hourchime == 1 {
-					// Only play chime once per hour, even if multiple update loops are running
+					// Top of the hour: play once per local hour (no second==0; update may be late)
 					currentHour := now.Hour()
 					if lastChimeHour != currentHour {
 						lastChimeHour = currentHour
@@ -524,18 +530,24 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 
 		updateClock()
 		go func() {
+			// When seconds are hidden, run the full clock update once per wall-clock minute
+			// (first 1s tick that sees the new minute). Relying only on local second==0 misses
+			// updates if the goroutine wakes late (sleep, scheduling), which breaks jiggle/chimes.
+			lastSlowClockMinuteEpoch := time.Now().Unix() / 60
 			ticker := time.NewTicker(time.Second)
 			defer ticker.Stop()
 			for {
 				select {
 				case <-ticker.C:
-					// updating frequently is something of a resource hog (CPU)
-					// check here if seconds are displayed, update
-					// if seconds are not displayed, check for seconds == 0
-					// at the minute change, and only update the clock then
 					now = time.Now()
-					if showseconds == 1 || now.Second() == 0 {
+					if showseconds == 1 {
 						updateClock()
+					} else {
+						minuteEpoch := now.Unix() / 60
+						if minuteEpoch != lastSlowClockMinuteEpoch {
+							lastSlowClockMinuteEpoch = minuteEpoch
+							updateClock()
+						}
 					}
 					// lock screen / mute volume event handler, but only if enabled
 					// and only unmute if we auto muted. If user had already muted, don't
