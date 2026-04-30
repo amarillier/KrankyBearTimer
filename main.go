@@ -30,7 +30,7 @@ import (
 
 const (
 	// appName    = "Kranky Bear Timer"
-	appVersion = "0.9.8" // see FyneApp.toml
+	appVersion = "0.9.9" // see FyneApp.toml
 	appAuthor  = "Allan Marillier"
 )
 
