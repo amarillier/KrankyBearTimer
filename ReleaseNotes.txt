@@ -1,9 +1,14 @@
 Release notes
 0.9.NEXT
+- Windows: automatic Mesa3D software-OpenGL fallback (llvmpipe, or softpipe on conservative VM CPUs) for VMs and locked-down hosts with no hardware OpenGL; About shows the renderer in use
 Timer:
 - Possibly add homebrew / choco packages, maybe also Ubuntu snap
 Clock:
 - 
+
+1.0.0 - November 18, 2026
+- Sunrise and sunset times, shown on the clock directly below the weather line. Optional: enable "Show sunrise/sunset on clock" in the Weather window (off by default, requires weather to be enabled). Uses the same Open-Meteo request as the weather, local to the selected location
+- New settings to choose the weather and sunrise/sunset colors on the clock (Clock settings: "Weather Color", "Sunrise/Sunset Color"); until chosen they follow the time color
 
 0.9.8
 - minor changes to clock functions

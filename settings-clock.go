@@ -423,6 +423,8 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255")
 			datecolor = a.Preferences().StringWithFallback("datecolor.default", "131,222,74,255")
 			utccolor = a.Preferences().StringWithFallback("utccolor.default", "238,229,58,255")
+			weathercolor = a.Preferences().StringWithFallback("weathercolor.default", "")
+			suncolor = a.Preferences().StringWithFallback("suncolor.default", "")
 
 			// Reload timezone variables (writeDefaultSettings already set them to defaults)
 			timezone1Enabled = a.Preferences().IntWithFallback("timezone1.enabled", 0)
@@ -600,7 +602,7 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 		commonTimezones := []string{
 			"", "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
 			"America/Phoenix", "America/Anchorage", "America/Honolulu", "Europe/London",
-			"Europe/Paris", "Europe/Berlin", "Europe/Rome", "Europe/Madrid", "Asia/Tokyo",
+			"Europe/Paris", "Europe/Berlin", "Europe/Warsaw", "Europe/Madrid", "Asia/Tokyo",
 			"Asia/Shanghai", "Asia/Hong_Kong", "Asia/Dubai", "Asia/Kolkata", "Australia/Sydney",
 			"Australia/Melbourne", "Pacific/Auckland", "America/Toronto", "America/Vancouver",
 			"America/Mexico_City", "America/Sao_Paulo", "Africa/Johannesburg",
@@ -802,10 +804,19 @@ func makeSettingsClock(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 			uincrease,
 			ucbutton)
 
+		wcbutton := widget.NewButton("Weather Color", func() {
+			colorPicker(settingsc, "weather", a)
+		})
+		scbutton := widget.NewButton("Sunrise/Sunset Color", func() {
+			colorPicker(settingsc, "suntimes", a)
+		})
+		wwidget := container.NewHBox(wcbutton, scbutton)
+
 		display := widget.NewForm(
 			widget.NewFormItem("Time size", twidget),
 			widget.NewFormItem("Date size", dwidget),
 			widget.NewFormItem("UTC size", uwidget),
+			widget.NewFormItem("Weather", wwidget),
 		)
 
 		// Resize to minimum required width to show all content (especially wider UTC offset fields)
@@ -888,6 +899,8 @@ func writeDefaultSettings(a fyne.App) {
 	a.Preferences().SetString("timecolor.default", "255,123,31,255")
 	a.Preferences().SetString("datecolor.default", "131,222,74,255")
 	a.Preferences().SetString("utccolor.default", "238,229,58,255")
+	a.Preferences().SetString("weathercolor.default", "") // empty = follow time color
+	a.Preferences().SetString("suncolor.default", "")
 	a.Preferences().SetString("timefont.default", "arial")
 	a.Preferences().SetString("datefont.default", "arial")
 	a.Preferences().SetString("utcfont.default", "arial")
@@ -918,6 +931,8 @@ func writeDefaultSettings(a fyne.App) {
 	timecolor = a.Preferences().StringWithFallback("timecolor.default", "255,123,31,255")
 	datecolor = a.Preferences().StringWithFallback("datecolor.default", "131,222,74,255")
 	utccolor = a.Preferences().StringWithFallback("utccolor.default", "238,229,58,255")
+	weathercolor = a.Preferences().StringWithFallback("weathercolor.default", "")
+	suncolor = a.Preferences().StringWithFallback("suncolor.default", "")
 
 	resetAutomuteScheduleDedupe()
 
@@ -944,6 +959,8 @@ func writeSettings(a fyne.App) {
 	a.Preferences().SetString("timecolor.default", timecolor)
 	a.Preferences().SetString("datecolor.default", datecolor)
 	a.Preferences().SetString("utccolor.default", utccolor)
+	a.Preferences().SetString("weathercolor.default", weathercolor)
+	a.Preferences().SetString("suncolor.default", suncolor)
 	a.Preferences().SetString("timefont.default", timefont)
 	a.Preferences().SetString("datefont.default", datefont)
 	a.Preferences().SetString("utcfont.default", utcfont)
@@ -1002,6 +1019,12 @@ func colorSelected(c color.Color, w fyne.Window, s string, a fyne.App) {
 	case "utc":
 		a.Preferences().SetString("utccolor.default", mycolor)
 		utccolor = mycolor
+	case "weather":
+		a.Preferences().SetString("weathercolor.default", mycolor)
+		weathercolor = mycolor
+	case "suntimes":
+		a.Preferences().SetString("suncolor.default", mycolor)
+		suncolor = mycolor
 	}
 	// Update clock display immediately with new colors (this will also update countdown)
 	updateClockDisplayColors()

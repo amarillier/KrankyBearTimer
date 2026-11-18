@@ -1,38 +1,38 @@
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBear.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearBeret.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearBeanieMultiColor.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearChristmas.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearChristmasGrinch.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearCowboyBrown.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearFedoraRed.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearHardHat.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearHogwartsSorting.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearTrapperRedPlaid.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/KrankyBearVikingHelmet.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/http418.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBear.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearBeret.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearBeanieMultiColor.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearChristmas.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearChristmasGrinch.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearCowboyBrown.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearFedoraRed.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearHardHat.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearHogwartsSorting.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearTrapperRedPlaid.png
+//go:generate fyne bundle -o bundled.go -a assets/images/KrankyBearVikingHelmet.png
+//go:generate fyne bundle -o bundled.go -a assets/images/http418.png
 
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard1.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard2.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard3.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard4.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard5.png
-//go:generate fyne bundle -o bundled.go -a Resources/Images/SchoolBoard6.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard1.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard2.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard3.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard4.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard5.png
+//go:generate fyne bundle -o bundled.go -a assets/images/SchoolBoard6.png
 
-///go:generate fyne bundle -o bundled.go -a Resources/Images/TBlue.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/TStone.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/TAlmond.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/TGrayTeach.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcn256.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcc256.png
-///go:generate fyne bundle -o bundled.go -a Resources/Images/Tcbe256.png
+///go:generate fyne bundle -o bundled.go -a assets/images/TBlue.png
+///go:generate fyne bundle -o bundled.go -a assets/images/TStone.png
+///go:generate fyne bundle -o bundled.go -a assets/images/TAlmond.png
+///go:generate fyne bundle -o bundled.go -a assets/images/TGrayTeach.png
+///go:generate fyne bundle -o bundled.go -a assets/images/Tcn256.png
+///go:generate fyne bundle -o bundled.go -a assets/images/Tcc256.png
+///go:generate fyne bundle -o bundled.go -a assets/images/Tcbe256.png
 
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/boing.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Basso.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Sosumi.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/Submarine.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/baseball.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/grandfatherClock.mp3
-///go:generate fyne bundle -o bundled.go -a Resources/Sounds/pinball.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/boing.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/Basso.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/Sosumi.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/Submarine.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/baseball.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/grandfatherClock.mp3
+///go:generate fyne bundle -o bundled.go -a assets/sounds/pinball.mp3
 
 package main
 

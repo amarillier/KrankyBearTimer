@@ -1,0 +1,103 @@
+identity:
+    name: KrankyBearTimer
+    id: com.github.amarillier.KrankyBearTimer
+    version: "1.0.0"
+    publisher: 'Allan Marillier, 2024-2025'
+    vendor: Allan Marillier
+    url: 'https://github.com/amarillier/KrankyBearTimer'
+    description: KrankyBear Timer - A cross-platform GUI countdown timer and desktop clock application
+    license: GPL v3
+    license_file: LICENSE
+    icons:
+        ico: assets/images/KrankyBearFedoraRed.ico
+        png: assets/images/KrankyBearFedoraRed.png
+binaries:
+    - os: windows
+      arch: amd64
+      path: bin/KrankyBearTimer-windows.exe
+    - os: darwin
+      arch: amd64
+      path: bin/KrankyBearTimer-macos-amd64
+    - os: darwin
+      arch: arm64
+      path: bin/KrankyBearTimer-macos-arm64
+    - os: linux
+      arch: amd64
+      path: bin/KrankyBearTimer-linux-amd64
+    - os: linux
+      arch: arm64
+      path: bin/KrankyBearTimer-linux-arm64
+payload:
+    - source: assets/LICENSE
+      dest: assets
+    - source: assets/ReleaseNotes.txt
+      dest: assets
+    - source: assets/images
+      dest: assets/images
+      recursive: true
+    - source: assets/sounds
+      dest: assets/sounds
+      recursive: true
+    - source: ReleaseNotes.txt
+      dest: ''
+    - source: assets/mesa-win/opengl32.dll
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/libgallium_wgl.dll
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/.force-mesa-fallback.sample
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/.force-mesa-compat.sample
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/.force-mesa-performance.sample
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/MESA_VERSION
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/MESA-NOTICE.txt
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/MESA-LICENSE.rst
+      dest: mesa-fallback
+      os:
+        - windows
+    - source: assets/mesa-win/licenses
+      dest: mesa-fallback/licenses
+      recursive: true
+      os:
+        - windows
+install:
+    windows: $PROGRAMFILES64\KrankyBearTimer
+    macos: /Applications/KrankyBearTimer.app
+    linux: /opt/KrankyBearTimer
+install_experience:
+    launch_after_install: true
+    desktop_shortcut: true
+    autostart_at_login: true
+windows:
+    upgrade_guid: '{16F44ABA-B246-4E35-85A0-8ED026D4E01B}'
+    exe_name: KrankyBearTimer-windows.exe
+    install_scope: ask
+macos:
+    bundle_executable: KrankyBearTimer
+targets:
+    - deb
+    - rpm
+    - macpkg
+    - winexe
+    - winmsi
+output:
+    dir: installers
+    filename_template: '{{.Identity.Name}}_{{.Identity.Version}}_{{.Arch}}'
+    clean_old_versions: true

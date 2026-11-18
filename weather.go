@@ -26,12 +26,15 @@ type WeatherData struct {
 	Conditions    string
 	LastUpdated   time.Time
 	LocationName  string
+	Sunrise       string // HH:MM local time at the weather location
+	Sunset        string // HH:MM local time at the weather location
 }
 
 var weatherWindow fyne.Window
 var weatherBackground *canvas.Rectangle
 var weatherTexts []*canvas.Text
 var weatherEnabled bool
+var showSunTimes bool // show sunrise/sunset below the weather line
 var weatherLatitude float64 = 0.0
 var weatherLongitude float64 = 0.0
 var currentWeatherData *WeatherData
@@ -44,6 +47,7 @@ func loadWeatherSettings(a fyne.App) {
 	weatherLatitude = float64(a.Preferences().FloatWithFallback("weather.latitude", 0.0))
 	weatherLongitude = float64(a.Preferences().FloatWithFallback("weather.longitude", 0.0))
 	weatherLocationName = a.Preferences().StringWithFallback("weather.locationname", "")
+	showSunTimes = a.Preferences().BoolWithFallback("weather.showsuntimes", false)
 
 	// Default to a reasonable location if not set (e.g., New York City)
 	if weatherLatitude == 0.0 && weatherLongitude == 0.0 {
@@ -59,6 +63,45 @@ func saveWeatherSettings(a fyne.App) {
 	a.Preferences().SetFloat("weather.latitude", weatherLatitude)
 	a.Preferences().SetFloat("weather.longitude", weatherLongitude)
 	a.Preferences().SetString("weather.locationname", weatherLocationName)
+	a.Preferences().SetBool("weather.showsuntimes", showSunTimes)
+}
+
+// weatherLabelColor parses a "r,g,b,a" color preference; an empty or invalid value follows the time color.
+func weatherLabelColor(s string) color.RGBA {
+	if strings.Count(s, ",") != 3 {
+		s = timecolor
+	}
+	r, g, b, a := parseColor(s)
+	return color.RGBA{R: r, G: g, B: b, A: a}
+}
+
+// applyWeatherColors applies the weather and sunrise/sunset colors to the clock labels. UI thread only.
+func applyWeatherColors() {
+	if weatherText != nil {
+		weatherText.Color = weatherLabelColor(weathercolor)
+		weatherText.Refresh()
+	}
+	if sunTimesLabel != nil {
+		sunTimesLabel.Color = weatherLabelColor(suncolor)
+		sunTimesLabel.Refresh()
+	}
+}
+
+// formatSunTime converts an Open-Meteo local ISO time (e.g. "2026-11-18T07:05") to "07:05".
+func formatSunTime(iso string) string {
+	t, err := time.Parse("2006-01-02T15:04", iso)
+	if err != nil {
+		return ""
+	}
+	return t.Format("15:04")
+}
+
+// sunTimesText returns the clock display line for sunrise/sunset.
+func sunTimesText() string {
+	if currentWeatherData == nil || currentWeatherData.Sunrise == "" || currentWeatherData.Sunset == "" {
+		return "Sun: Loading..."
+	}
+	return fmt.Sprintf("Sunrise %s / Sunset %s", currentWeatherData.Sunrise, currentWeatherData.Sunset)
 }
 
 // searchLocation searches for a city/country using Open-Meteo Geocoding API
@@ -127,7 +170,7 @@ func fetchWeather(a fyne.App) (*WeatherData, error) {
 	}
 
 	// Open-Meteo API endpoint for current weather and forecast
-	url := fmt.Sprintf("https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,precipitation,snowfall&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum&timezone=auto",
+	url := fmt.Sprintf("https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,precipitation,snowfall&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,sunrise,sunset&timezone=auto",
 		weatherLatitude, weatherLongitude)
 
 	// Create HTTP client with timeout
@@ -162,6 +205,8 @@ func fetchWeather(a fyne.App) (*WeatherData, error) {
 			Temperature2mMin []float64 `json:"temperature_2m_min"`
 			PrecipitationSum []float64 `json:"precipitation_sum"`
 			SnowfallSum      []float64 `json:"snowfall_sum"`
+			Sunrise          []string  `json:"sunrise"`
+			Sunset           []string  `json:"sunset"`
 		} `json:"daily"`
 	}
 
@@ -186,6 +231,13 @@ func fetchWeather(a fyne.App) (*WeatherData, error) {
 	}
 	if len(apiResponse.Daily.Temperature2mMin) > 0 {
 		weather.MinTemp = apiResponse.Daily.Temperature2mMin[0]
+	}
+
+	if len(apiResponse.Daily.Sunrise) > 0 {
+		weather.Sunrise = formatSunTime(apiResponse.Daily.Sunrise[0])
+	}
+	if len(apiResponse.Daily.Sunset) > 0 {
+		weather.Sunset = formatSunTime(apiResponse.Daily.Sunset[0])
 	}
 
 	// Determine conditions
@@ -246,7 +298,10 @@ func updateWeatherDisplay(a fyne.App) {
 		return
 	}
 
-	// currentWeatherData is updated by fetchWeather, so clock display will update automatically
+	// currentWeatherData is updated by fetchWeather; push it to the clock labels now rather than waiting
+	// for the next clock update (which can be up to a minute when seconds are hidden)
+	fyne.Do(refreshWeatherLabels)
+
 	// Only update window display if window is open
 	if weatherWindow == nil {
 		return
@@ -471,6 +526,15 @@ func makeWeatherWindow(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	})
 	enabledCheck.SetChecked(weatherEnabled)
 
+	sunTimesCheck := widget.NewCheck("Show sunrise/sunset on clock", func(checked bool) {
+		showSunTimes = checked
+		saveWeatherSettings(a)
+		if clock != nil {
+			updateTimezoneVisibility()
+		}
+	})
+	sunTimesCheck.SetChecked(showSunTimes)
+
 	// Buttons
 	updateButton := widget.NewButton("Update Location", func() {
 		lat, err1 := strconv.ParseFloat(latEntry.Text, 64)
@@ -646,6 +710,7 @@ func makeWeatherWindow(a fyne.App, w fyne.Window, bg fyne.Canvas) {
 	content.Add(container.NewHBox(currentLocationButton))
 	content.Add(container.NewHBox(updateButton, refreshButton))
 	content.Add(enabledCheck)
+	content.Add(sunTimesCheck)
 
 	scroll := container.NewScroll(content)
 	padded := container.NewPadded(scroll)

@@ -63,7 +63,7 @@ func daysUntil(targetDate string) (int, error) {
 // see error logging:
 // https://rollbar.com/blog/golang-error-logging-guide/
 func logInit() {
-	// typically written to Resources/...
+	// typically written to assets/...
 	file, err := os.OpenFile(processName+"0.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatal(err)
@@ -290,8 +290,10 @@ func isProcessRunning(processRegex string) bool {
 	return false
 }
 
-func updateChecker(repoOwner string, repo string, repoName string, repodl string) (string, bool) {
-	// uc := updatechecker.New("amarillier", "KrankyBearTimer", "Kranky Bear Timer", "", 1, false)
+func updateChecker(repoOwner string, repo string, repoName string, repodl string, checkStatePath string) (string, bool) {
+	if checkStatePath != "" {
+		updatechecker.SetCheckStatePath(checkStatePath)
+	}
 	uc := updatechecker.New(repoOwner, repo, repoName, repodl, 0, false)
 	uc.CheckForUpdate(appVersion)
 	// uc.PrintMessage()

@@ -2,9 +2,9 @@
 ID = "com.github.amarillier.KrankyBearTimer"
 Name = "Kranky Bear Timer"
 Creator = "Allan Marillier"
-Version = "0.9.9"
+Version = "1.0.0"
 Build = 1
-Icon = "Resources/Images/KrankyBearFedoraRed.png"
+Icon = "assets/images/KrankyBearFedoraRed.png"
 
 [Migrations]
   fyneDo = true

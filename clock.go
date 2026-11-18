@@ -33,6 +33,7 @@ var timezone3Text *canvas.Text
 var timezone4Text *canvas.Text
 var timezone5Text *canvas.Text
 var weatherText *canvas.Text
+var sunTimesLabel *canvas.Text
 
 // clockVBox removed - not needed since we don't do dynamic rebuilding anymore
 
@@ -239,13 +240,23 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 		}
 
 		// Always create weather text element (we'll show/hide it dynamically)
-		weatherText = canvas.NewText("", color.RGBA{R: ure, G: ugr, B: ubl, A: ua})
+		weatherText = canvas.NewText("", weatherLabelColor(weathercolor))
 		weatherText.TextStyle = fyne.TextStyle{Bold: true}
 		weatherText.Alignment = fyne.TextAlignCenter
 		weatherText.TextSize = float32(utcsize)
 		vbox.Add(weatherText)
 		if !weatherEnabled {
 			weatherText.Hide()
+		}
+
+		// Sunrise/sunset directly below the weather line (same Open-Meteo data)
+		sunTimesLabel = canvas.NewText("", weatherLabelColor(suncolor))
+		sunTimesLabel.TextStyle = fyne.TextStyle{Bold: true}
+		sunTimesLabel.Alignment = fyne.TextAlignCenter
+		sunTimesLabel.TextSize = float32(utcsize)
+		vbox.Add(sunTimesLabel)
+		if !(weatherEnabled && showSunTimes) {
+			sunTimesLabel.Hide()
 		}
 
 		content := container.NewStack(background, vbox)
@@ -526,6 +537,12 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 					weatherText.Refresh()
 				})
 			}
+			if weatherEnabled && showSunTimes && sunTimesLabel != nil {
+				sunTimesLabel.Text = sunTimesText()
+				fyne.Do(func() {
+					sunTimesLabel.Refresh()
+				})
+			}
 		}
 
 		updateClock()
@@ -592,6 +609,7 @@ func desktopclock(a fyne.App) { // , w fyne.Window, bg fyne.Canvas) {
 			timezone4Text = nil
 			timezone5Text = nil
 			weatherText = nil
+			sunTimesLabel = nil
 		})
 		clock.Resize(fyne.NewSize(content.MinSize().Width*1.2, content.MinSize().Height*1.1))
 		// clock.Resize(fyne.NewSize(300, 200))
@@ -738,9 +756,8 @@ func updateClockColors() {
 			timezone5Text.Refresh()
 			updated = true
 		}
-		if weatherText != nil {
-			weatherText.Color = color.RGBA{R: tre, G: tgr, B: tbl, A: ta}
-			weatherText.Refresh()
+		if weatherText != nil || sunTimesLabel != nil {
+			applyWeatherColors()
 			updated = true
 		}
 		if clockBackground != nil {
@@ -765,6 +782,25 @@ func updateClockColors() {
 }
 
 // updateTimezoneVisibility shows/hides timezone elements based on enabled state
+// refreshWeatherLabels sets the weather and sunrise/sunset text on the clock immediately, so changes in
+// settings or newly fetched data show without waiting for the next (possibly once-a-minute) clock update.
+// Must be called on the UI thread (inside fyne.Do).
+func refreshWeatherLabels() {
+	if weatherEnabled && weatherText != nil {
+		if currentWeatherData != nil {
+			tempC := currentWeatherData.CurrentTemp
+			weatherText.Text = fmt.Sprintf("Weather: %.1f°F / %.1f°C", tempC*9/5+32, tempC)
+		} else {
+			weatherText.Text = "Weather: Loading..."
+		}
+		weatherText.Refresh()
+	}
+	if weatherEnabled && showSunTimes && sunTimesLabel != nil {
+		sunTimesLabel.Text = sunTimesText()
+		sunTimesLabel.Refresh()
+	}
+}
+
 func updateTimezoneVisibility() {
 	if clock == nil {
 		return
@@ -819,6 +855,14 @@ func updateTimezoneVisibility() {
 				weatherText.Hide()
 			}
 		}
+		if sunTimesLabel != nil {
+			if weatherEnabled && showSunTimes {
+				sunTimesLabel.Show()
+			} else {
+				sunTimesLabel.Hide()
+			}
+		}
+		refreshWeatherLabels()
 
 		// Refresh the clock content to update layout
 		if clock != nil && clock.Content() != nil {
